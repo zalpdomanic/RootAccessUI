@@ -11,22 +11,40 @@
   function put(id,value){const el=$(id),str=String(value);if(el.textContent!==str)el.textContent=str;}
   function save(){try{localStorage.setItem(KEY,JSON.stringify(game.s));}catch{}}
   function tell(text){put('toast',text);$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),2000);}
-  function setPanel(p){panel=p;$('game').dataset.panel=p;$('drawer-body').hidden=p==='closed';$('jobs-view').hidden=p!=='jobs';$('rack-view').hidden=p!=='rack';$('install-view').hidden=p!=='install';$('new-rack-view').hidden=p!=='new-rack';$('drawer-toggle').setAttribute('aria-expanded',p!=='closed');$('drawer-close').hidden=p==='closed'||p==='jobs';put('drawer-title',p==='new-rack'?'NEW RACK':p==='rack'||p==='install'?'SERVER RACK':'JOBS');rackKey='';installKey='';render();}
+  function setPanel(p){panel=p;$('game').dataset.panel=p;$('drawer-body').hidden=p==='closed';$('jobs-view').hidden=p!=='jobs';$('rack-view').hidden=p!=='rack';$('rack-subtitle').hidden=p!=='rack';$('install-view').hidden=p!=='install';$('new-rack-view').hidden=p!=='new-rack';$('drawer-toggle').setAttribute('aria-expanded',p!=='closed');$('drawer-close').hidden=p==='closed'||p==='jobs';put('drawer-title',p==='new-rack'?'NEW RACK':p==='rack'||p==='install'?'SERVER RACK':'JOBS');rackKey='';installKey='';render();}
   function rack(slot=-1,index=activeRack){activeRack=slot>=0?Math.floor(slot/5):index;selectedSlot=slot;setPanel('rack');}
   function openInstall(slot,job=null){installSlot=slot;installJob=job;setPanel('install');}
   $('segments').innerHTML='<span></span>'.repeat(10);
   $('job-list').innerHTML=JOBS.map((j,i)=>`<div class="job" id="job-${i}" data-run="${i}" tabindex="0" role="button" aria-label="Run ${j.name}"><div class="job-actions"><button class="run" data-run="${i}" aria-label="Start ${j.name}">RUN</button><button class="automate" data-automate="${i}" aria-label="Automate ${j.name}"><span>AUTO +</span><b class="auto-price"></b></button></div><div class="job-info"><div class="job-name">${j.name}</div><div class="job-stats"><span class="state"></span><span class="payout"></span></div><div class="job-track" role="progressbar" aria-label="${j.name} progress" aria-valuemin="0" aria-valuemax="100"><span></span></div></div><button class="level" data-level="${i}" aria-label="Level up ${j.name}"><span class="level-label">LEVEL UP</span><b></b></button></div>`).join('');
+  function equipmentIcon(type){
+    if(!type)return '<span class="empty-equipment">+</span>';
+    const common='<defs><linearGradient id="metal-'+type+'" x2="1" y2="1"><stop stop-color="#3b5261"/><stop offset=".45" stop-color="#14232f"/><stop offset="1" stop-color="#050b12"/></linearGradient></defs>';
+    const rig='<path d="M18 19 77 8 109 24 49 39Z" fill="#263a49" stroke="#577080"/><path d="M18 19 49 39 49 83 18 62Z" fill="#07121c" stroke="#3d5667"/><path d="M49 39 109 24 109 68 49 83Z" fill="url(#metal-rig)" stroke="#537082"/><path d="m56 46 45-11m-45 22 45-11m-45 22 45-11" stroke="#03090e" stroke-width="7"/><path d="m61 43 13-3m-13 14 13-3m-13 14 13-3" stroke="#00e2f2" stroke-width="3"/><path d="m84 38 14-3m-14 14 14-3m-14 14 14-3" stroke="#325566" stroke-width="2"/>';
+    const modem='<path d="M27 48 23 9m78 24 4-25" stroke="#08111c" stroke-width="7"/><path d="M27 48 23 9m78 24 4-25" stroke="#68818e" stroke-width="2"/><path d="M14 51 80 35 115 52 49 70Z" fill="#2b3e4b" stroke="#5c7582"/><path d="M14 51 49 70 49 86 14 67Z" fill="#08131d" stroke="#395363"/><path d="M49 70 115 52 115 68 49 86Z" fill="url(#metal-modem)" stroke="#547080"/><path d="m58 75 5-1m4-1 5-1m4-1 5-1m4-1 5-1m4-1 5-1" stroke="#00e8f7" stroke-width="3"/>';
+    return '<svg viewBox="0 0 128 96" aria-hidden="true">'+common+(type==='rig'?rig:modem)+'</svg>';
+  }
   function renderRack(){
     const modem=game.modem(),price=1500000*2**((modem?.level||1)-1),key=JSON.stringify([game.s.slots,activeRack,selectedSlot,game.s.money>=price]);if(key===rackKey)return;rackKey=key;
-    $('rack-list').innerHTML=game.s.slots.slice(activeRack*5,activeRack*5+5).map((s,n)=>{const i=activeRack*5+n;
-      const title=!s?'Empty shelf':s.type==='rig'?'Automation rig':'Fiber modem';
-      const desc=!s?'':s.type==='rig'?JOBS[s.job].name:`LV ${s.level}`;
-      let detail='';
-      if(selectedSlot===i){if(!s)detail='';
-      else if(s.type==='rig')detail=`<span>${JOBS[s.job].name}<br><strong>AUTO REPEAT</strong></span><button class="action outline" data-jobs>JOBS</button>`;
-      else{const c=1500000*2**(s.level-1);detail=s.level>=5?'<span>ALL JOB SPEED <strong>+36%</strong><br>MAX LEVEL</span>':`<span>ALL JOB SPEED <strong>+${20+(s.level-1)*4}% → +${20+s.level*4}%</strong><br>COMFORT <strong>+2</strong></span><button class="action" data-upgrade ${game.s.money<c?'disabled':''}>UPGRADE<b>${cash(c)}</b></button>`;}}
-      return `<div class="rack-slot ${selectedSlot===i?'selected':''}"><button class="rack-row" data-slot="${i}" aria-expanded="${selectedSlot===i}"><span class="slot-number">0${n+1}</span><span class="item-icon" aria-hidden="true">${!s?'+':s.type==='rig'?'≋':'▥'}</span><span class="rack-name">${title}<small>${desc}</small></span><span class="rack-tag">${!s?'INSTALL':s.type==='rig'?'AUTO':'+'}</span></button>${detail?`<div class="rack-detail">${detail}</div>`:''}</div>`;
+    const previousScroll=$('rack-list').scrollTop;
+    $('rack-list').innerHTML=game.s.slots.slice(activeRack*5,activeRack*5+5).map((s,n)=>{
+      const i=activeRack*5+n,selected=selectedSlot===i,title=!s?'Empty shelf':s.type==='rig'?'Automation rig':'Fiber modem';
+      let info='',action='';
+      if(!s)action='<span class="rack-status install">INSTALL</span>';
+      else if(s.type==='rig'){
+        info='<small>'+JOBS[s.job].name+'</small>'+(selected?'<span class="rack-benefit">AUTO REPEAT</span>':'');
+        action='<span class="rack-status auto">AUTO</span>';
+      }else{
+        const bonus=20+(s.level-1)*4,cost=1500000*2**(s.level-1);
+        info='<span class="equipment-level">LV '+s.level+(selected&&s.level<5?' <b>→ '+(s.level+1)+'</b>':'')+'</span>';
+        if(selected){
+          info+='<span class="rack-benefit">ALL JOB SPEED <b>+'+bonus+'%'+(s.level<5?' → +'+(bonus+4)+'%':'')+'</b></span>';
+          if(s.level<5)info+='<span class="rack-benefit">COMFORT <b>+2</b></span>';
+          action=s.level>=5?'<span class="rack-status capped">MAX LEVEL</span>':'<button class="rack-upgrade action" data-upgrade '+(game.s.money<cost?'disabled':'')+'>UPGRADE<b>'+cash(cost)+'</b></button>';
+        }else action='<span class="rack-status inspect">UPGRADE</span>';
+      }
+      return '<div class="rack-slot '+(selected?'selected ':'')+(s?.type||'empty')+'"><button class="rack-row" data-slot="'+i+'" aria-label="Shelf '+(n+1)+': '+title+'" aria-expanded="'+selected+'"><span class="slot-number">0'+(n+1)+'</span><span class="equipment-icon">'+equipmentIcon(s?.type)+'</span><span class="rack-name"><span class="equipment-title">'+title+'</span>'+info+'</span></button>'+action+'</div>';
     }).join('');
+    $('rack-list').scrollTop=previousScroll;
     if(selectedSlot>=0)$('rack-list').children[selectedSlot%5]?.scrollIntoView({block:'nearest'});
   }
   function renderInstall(){
@@ -41,7 +59,7 @@
     const s=game.s;put('money',cash(s.money));$('money').title=fullCash(s.money);put('income','+'+cash(game.rate(now))+'/s');
     const reputation=game.repStatus();put('rep-level','REP LV '+reputation.level);put('rep',reputation.progress+' / '+reputation.required);$('rep-fill').style.width=(reputation.progress/reputation.required*100)+'%';$('rep-fill').parentElement.setAttribute('aria-valuenow',reputation.progress);$('rep-fill').parentElement.setAttribute('aria-valuemax',reputation.required);$('rep-fill').parentElement.setAttribute('aria-label','Reputation level '+reputation.level);put('comfort',game.comfort(now));
     const running=s.jobs.filter(j=>j.running).length,auto=s.slots.filter(x=>x?.type==='rig'&&game.unlocked(x.job)).length;
-    const expanded=game.rackCount()>1;$('game').dataset.hasExpansion=expanded;$('add-rack-target').hidden=expanded;$('new-rack-target').hidden=!expanded;$('rack-tabs').hidden=!expanded;document.querySelectorAll('[data-rack]').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.rack)===activeRack));put('drawer-meta',panel==='new-rack'?'5 EMPTY SHELVES':panel==='rack'||panel==='install'?`0${activeRack+1} · ${s.slots.slice(activeRack*5,activeRack*5+5).filter(Boolean).length} / 5 SLOTS`:`${running} RUNNING • ${auto} AUTO`);put('rack-price',cash(game.rackPrice()));$('buy-rack').disabled=expanded||s.money<game.rackPrice();
+    const expanded=game.rackCount()>1;$('game').dataset.hasExpansion=expanded;$('add-rack-target').hidden=expanded;$('new-rack-target').hidden=!expanded;$('rack-tabs').hidden=!expanded||panel!=='rack';document.querySelectorAll('[data-rack]').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.rack)===activeRack));put('drawer-meta',panel==='new-rack'?'5 EMPTY SHELVES':panel==='rack'||panel==='install'?`0${activeRack+1} · ${s.slots.slice(activeRack*5,activeRack*5+5).filter(Boolean).length} / 5 SLOTS`:`${running} RUNNING • ${auto} AUTO`);put('rack-price',cash(game.rackPrice()));$('buy-rack').disabled=expanded||s.money<game.rackPrice();
     put('tap-value','+'+cash(game.tapValue(now)));put('full-value','+'+cash(game.tapValue(now)*15));put('tap-count',s.taps+' / 10');[...$('segments').children].forEach((el,i)=>el.classList.toggle('filled',i<s.taps));put('speed','×'+game.speed(now).toFixed(2));put('boost-time',s.boosts.length?'• '+Math.max(1,Math.ceil((Math.min(...s.boosts)-now)/1000))+'s':'');
     document.querySelectorAll('[data-buy]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.buy)===String(s.buyMode)));
     s.jobs.forEach((j,i)=>{
