@@ -11,7 +11,8 @@
   function put(id,value){const el=$(id),str=String(value);if(el.textContent!==str)el.textContent=str;}
   function save(){try{localStorage.setItem(KEY,JSON.stringify(game.s));}catch{}}
   function tell(text){put('toast',text);$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),2000);}
-  function setJobsExpanded(value){jobsExpanded=panel==='jobs'&&value;$('game').dataset.jobsExpanded=jobsExpanded;$('jobs-expand').hidden=panel!=='jobs';$('jobs-expand').setAttribute('aria-expanded',jobsExpanded);$('jobs-expand').setAttribute('aria-label',jobsExpanded?'Collapse jobs':'Expand jobs');$('drawer-close').hidden=panel==='closed'||(panel==='jobs'&&!jobsExpanded);}
+  function setJobsExpanded(value){jobsExpanded=panel==='jobs'&&value;$('game').dataset.jobsExpanded=jobsExpanded;$('jobs-expand').hidden=panel!=='jobs'||jobsExpanded;$('jobs-expand').setAttribute('aria-expanded',jobsExpanded);$('jobs-collapse').hidden=panel!=='jobs';$('jobs-collapse').setAttribute('aria-label',jobsExpanded?'Collapse jobs':'Close jobs');$('drawer-close').hidden=panel==='closed'||panel==='jobs';}
+  function lowerJobs(){if(jobsExpanded)setJobsExpanded(false);else setPanel('closed');}
   function setPanel(p){if(p!==panel)jobsExpanded=false;panel=p;$('game').dataset.panel=p;$('drawer-body').hidden=p==='closed';$('jobs-view').hidden=p!=='jobs';$('rack-view').hidden=p!=='rack';$('rack-subtitle').hidden=p!=='rack'&&p!=='new-rack';$('buy-rack').hidden=p!=='new-rack';$('install-view').hidden=p!=='install';$('new-rack-view').hidden=p!=='new-rack';$('drawer-toggle').setAttribute('aria-expanded',p!=='closed');setJobsExpanded(jobsExpanded);put('drawer-title',p==='new-rack'||p==='rack'||p==='install'?'SERVER RACK':'JOBS');rackKey='';installKey='';render();}
   function rack(slot=-1,index=activeRack){activeRack=slot>=0?Math.floor(slot/5):index;selectedSlot=slot;setPanel('rack');}
   function openInstall(slot,job=null){installSlot=slot;installJob=job;setPanel('install');}
@@ -79,8 +80,9 @@
   $('hack').onclick=hack;
   $('buy-rack').onclick=()=>{if(game.buyRack()){rack(-1,1);save();}};
   $('drawer-toggle').onclick=()=>setPanel(panel==='closed'?'jobs':'closed');$('drawer-close').onclick=()=>setPanel('closed');
-  $('jobs-expand').onclick=()=>setJobsExpanded(!jobsExpanded);
-  // Compact jobs accept an upward drag; the expanded list keeps native scrolling.
+  $('jobs-expand').onclick=()=>setJobsExpanded(true);
+  $('jobs-collapse').onclick=lowerJobs;
+  // Header drags move one drawer stage; the expanded list keeps native scrolling.
   let swipe=null,suppressClickUntil=0;
   $('dock').addEventListener('pointerdown',e=>{
     if(!e.isPrimary||e.button!==0||panel!=='jobs')return;
@@ -100,7 +102,7 @@
     if(Math.abs(dy)<35||Math.abs(dy)<Math.abs(dx)*1.2)return;
     suppressClickUntil=Date.now()+400;
     if(dy<0&&!wasExpanded)setJobsExpanded(true);
-    else if(dy>0&&wasExpanded)setJobsExpanded(false);
+    else if(dy>0)lowerJobs();
   });
   $('dock').addEventListener('pointercancel',()=>{swipe=null;});
   $('dock').addEventListener('click',e=>{if(Date.now()<suppressClickUntil){e.preventDefault();e.stopImmediatePropagation();}},true);
@@ -123,7 +125,7 @@
   });
   document.addEventListener('keydown',e=>{
     if(!$('settings-overlay').hidden){if(e.key==='Escape'){e.preventDefault();closeSettings();}if(e.key==='Tab'){const buttons=[...$('settings-overlay').querySelectorAll('button')].filter(x=>!x.closest('[hidden]'));const first=buttons[0],last=buttons.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}return;}
-    if(e.key==='Escape'){if(jobsExpanded)setJobsExpanded(false);else setPanel('closed');return;}
+    if(e.key==='Escape'){lowerJobs();return;}
     if(e.target.classList.contains('job')&&(e.key==='Enter'||e.code==='Space')){e.preventDefault();if(!e.repeat)e.target.click();return;}
     if(e.code==='Space'&&e.target===document.body){e.preventDefault();if(!e.repeat){hack();$('hack').classList.add('pressed');}}
   });

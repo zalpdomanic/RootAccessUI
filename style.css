@@ -84,9 +84,9 @@
 :is(#rack-list,#new-rack-list):has(.selected) .selected .equipment-icon svg{height:80px}
 
 /* Expanded jobs fill the space between the persistent HUD and hack controls. */
-#jobs-expand{width:64px;height:64px;flex-shrink:0;padding:10px;margin-left:14px;background:none;border:0;color:var(--cyan);touch-action:none}
-#jobs-expand svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:5;transition:transform .2s}
-#jobs-expand[aria-expanded=true] svg{transform:rotate(180deg)}
+.jobs-arrow{width:64px;height:64px;flex-shrink:0;padding:10px;margin-left:14px;background:none;border:0;color:var(--cyan);touch-action:none}
+.jobs-arrow svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:5;transition:transform .2s}
+
 #game[data-panel=jobs] #drawer-toggle .chevron{display:none}
 #game[data-panel=jobs] .drawer-header{position:relative;touch-action:none;user-select:none}
 #game[data-panel=jobs] .drawer-header:before{content:"";position:absolute;top:5px;left:calc(50% - 36px);width:72px;height:4px;border-radius:4px;background:#377b8d;pointer-events:none}
@@ -111,7 +111,7 @@
 #game[data-small-screen=true] .job-actions .automate{height:auto;min-height:calc(var(--min-font)*2.5)}
 #game[data-small-screen=true] .drawer-header{padding:0 20px}
 #game[data-small-screen=true] .drawer-header #drawer-meta{margin-left:20px;padding-left:20px}
-#game[data-small-screen=true] #jobs-expand{margin-left:5px}
+#game[data-small-screen=true] .jobs-arrow{margin-left:5px}
 #game[data-small-screen=true] .comfort{padding-left:20px;gap:12px;min-width:0}
 #game[data-small-screen=true] .hud-bottom{gap:20px;padding-left:0;padding-right:0}
 #game[data-small-screen=true] .rep>div:first-child{gap:10px}
@@ -148,3 +148,7 @@
 #game[data-panel=new-rack] #drawer-meta{margin-left:12px;padding-left:12px}
 #game[data-panel=new-rack] #rack-subtitle{white-space:nowrap}
 #game[data-panel=new-rack] .drawer-heading{flex-shrink:0}
+
+/* Match the reference HACK lettering without synthetic font weight or blur. */
+#hack{display:grid;place-items:center;text-shadow:none}
+.hack-wordmark{display:block;width:198px;height:56px;pointer-events:none}
