@@ -2,6 +2,12 @@
 
 Tek ekranlı, mobil odaklı interaktif idle oyun demosu. HTML, CSS ve JavaScript ile çalışır; kurulum veya build adımı gerektirmez.
 
+## Tarayıcıda oyna
+
+**[ROOT ACCESS demosunu aç](https://zalpdomanic.github.io/RootAccessUI/)**
+
+Bu bağlantı doğrudan oyunu açar. Arkadaşlarınızın dosya indirmesi veya GitHub hesabına giriş yapması gerekmez. İlerleme her oyuncunun kendi tarayıcısında saklanır.
+
 ## Çalıştırma
 
 Depoyu indirin veya klonlayın, ardından `index.html` dosyasını tarayıcıda açın. Yerel sunucu kullanmak isterseniz depo klasöründe `python -m http.server 8080` çalıştırıp `http://localhost:8080` adresini açabilirsiniz.
@@ -28,4 +34,4 @@ Depoyu indirin veya klonlayın, ardından `index.html` dosyasını tarayıcıda 
 
 Node.js kuruluysa `node test-engine.cjs` ile kontroller çalıştırılabilir. Oyun Node.js gerektirmez.
 
-Klasör doğrudan statik hosting veya GitHub Pages ile servis edilebilir.
+GitHub Pages, `main` dalının kök klasöründen yayınlanır. Bu dala gönderilen güncellemeler otomatik olarak oyun bağlantısına yansır.
