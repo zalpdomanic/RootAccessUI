@@ -17,6 +17,7 @@ Depoyu indirin veya klonlayın, ardından `index.html` dosyasını tarayıcıda 
 - HACK ile para kazanın, barı doldurup geçici iş hızı bonusu alın.
 - REP 1'den başlayın; yeni işler REP 2, 3 ve 4'te açılır. REP seviyeleri devam eder.
 - JOBS menüsünden işleri çalıştırın, fiyatı görünen AUTO + düğmesiyle otomasyon satın alın.
+- JOBS açıkken yukarı kaydırıp listeyi büyütün; başlığını aşağı kaydırıp küçültün. Üstteki para paneli ve alttaki HACK kontrolleri sabit kalır. Ok düğmesiyle de görünüm değiştirilebilir.
 - İşleri 1×, 10×, 100× veya BUY MAX ile yükseltin.
 - Server rack'e dokunup ekipman kurun. Rack başına 5 raf bulunur; menüde aynı anda 3 raf gösterilir, diğerlerine kaydırarak erişilir.
 - Yerdeki + alanından ikinci bir 5 raflı rack satın alın.
