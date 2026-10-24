@@ -15,8 +15,9 @@
       // Apply the requested level-one starting point once to existing demos.
       if(this.s.rulesVersion<3){this.s.rep=0;this.s.jobs.forEach((j,i)=>{if(i>0){j.running=false;j.progress=0;}});this.s.rulesVersion=3;}
       if(![1,10,100,'max'].includes(this.s.buyMode))this.s.buyMode=1;
+      const savedAt=Number.isFinite(this.s.last)?Math.min(now,this.s.last):now;
       this.s.income=[]; this.s.last=now;
-      this.s.boosts=this.s.boosts.filter(t=>t>now);
+      this.s.boosts=this.s.boosts.filter(t=>t>savedAt);
     }
     static seed(mode,now=Date.now()) {return {version:1,rulesVersion:3,mode,money:mode==='demo'?2480000:25,rep:0,comfort:mode==='demo'?5:3,taps:0,totalTaps:0,earned:0,completed:0,boosts:[],income:[],last:now,slots:mode==='demo'?[{type:'rig',job:0},null,null,null,null]:[null,null,null,null,null],jobs:JOBS.map((_,i)=>({level:1,progress:0,running:mode==='demo'&&i===0})),log:[]};}
     rackCount(){return Math.ceil(this.s.slots.length/5);}
@@ -37,6 +38,33 @@
     gain(amount,now){this.s.money+=amount;this.s.earned+=amount;this.s.income.push({t:now,a:amount});}
     log(message,now=Date.now()){this.s.log.unshift({message,t:now});this.s.log=this.s.log.slice(0,12);}
     rate(now=Date.now()){this.s.income=this.s.income.filter(x=>now-x.t<15000);return this.s.income.reduce((n,x)=>n+x.a,0)/15;}
+    resumeOffline(savedAt,now=Date.now()){
+      const away=Number.isFinite(savedAt)?Math.max(0,now-savedAt):0;
+      if(!away){this.s.last=now;return this.s.offlineReward||null;}
+      const credited=Math.min(away,8*60*60*1000),before=this.s.money,earned=this.s.earned,completed=this.s.completed;
+      this.s.last=savedAt;
+      const until=savedAt+credited;
+      // Stop at job completions while locked rigs could unlock through REP.
+      while(this.s.last<until&&this.s.jobs.some((j,i)=>!this.unlocked(i)&&(j.running||this.auto(i)))){
+        const next=this.s.jobs.reduce((ms,j,i)=>this.unlocked(i)&&(j.running||this.auto(i))?Math.min(ms,(JOBS[i].seconds-j.progress)/this.speed(this.s.last)*1000):ms,until-this.s.last);
+        const expiry=Math.min(...this.s.boosts.filter(t=>t>this.s.last),until);
+        this.tick(Math.min(until,expiry,this.s.last+Math.max(1,next)));
+      }
+      if(this.s.last<until)this.tick(until);
+      this.s.last=now;this.s.boosts=this.s.boosts.filter(t=>t>now);this.s.income=[];
+      const amount=this.s.money-before,jobs=this.s.completed-completed;
+      if(away>=60000&&amount>0){
+        this.s.money=before;this.s.earned=earned;
+        const pending=this.s.offlineReward||{amount:0,jobs:0,away:0,credited:0};
+        this.s.offlineReward={amount:pending.amount+amount,jobs:pending.jobs+jobs,away:pending.away+away,credited:pending.credited+credited};
+      }
+      return this.s.offlineReward||null;
+    }
+    collectOffline(){
+      const reward=this.s.offlineReward;if(!reward)return null;
+      this.s.money+=reward.amount;this.s.earned+=reward.amount;delete this.s.offlineReward;
+      return reward;
+    }
     tick(now=Date.now()){
       let from=this.s.last; this.s.last=now;
       // Integrate at effect boundaries so every boost expires independently.
@@ -44,7 +72,7 @@
       for(const to of [...boundaries,now]){if(to>from){this.advance((to-from)/1000*this.speed(from),to,from);from=to;}}
       this.s.boosts=this.s.boosts.filter(t=>t>now);this.rate(now);
     }
-    advance(seconds,now,payoutAt=now){this.s.jobs.forEach((j,i)=>{if(!this.unlocked(i))return;if(this.auto(i))j.running=true;if(!j.running)return;j.progress+=seconds;let count=0;while(j.progress>=JOBS[i].seconds&&count++<10000){j.progress-=JOBS[i].seconds;this.gain(this.payout(i,payoutAt),now);this.s.rep+=JOBS[i].repGain;this.s.completed++;if(!this.auto(i)){j.running=false;j.progress=0;this.log(JOBS[i].name+' tamamlandı',now);break;}}});}
+    advance(seconds,now,payoutAt=now){const unlocked=this.s.jobs.map((_,i)=>this.unlocked(i));this.s.jobs.forEach((j,i)=>{if(!unlocked[i])return;const automated=this.auto(i);if(automated)j.running=true;if(!j.running)return;j.progress+=seconds;const count=Math.min(Math.floor(j.progress/JOBS[i].seconds),automated?Infinity:1);if(!count)return;j.progress-=count*JOBS[i].seconds;this.gain(this.payout(i,payoutAt)*count,now);this.s.rep+=JOBS[i].repGain*count;this.s.completed+=count;if(!automated){j.running=false;j.progress=0;this.log(JOBS[i].name+' tamamlandı',now);}});}
     hack(now=Date.now()){this.tick(now);const amount=this.tapValue(now);this.gain(amount,now);this.s.totalTaps++;this.s.taps++;this.advance(0.35,now);let bonus=0;if(this.s.taps===10){this.s.taps=0;bonus=amount*15;this.gain(bonus,now);this.s.boosts.push(now+12000);this.log('Bar doldu · +%25 hız / 12 sn',now);}return {amount,bonus};}
     run(i){if(!this.unlocked(i)||this.s.jobs[i].running)return false;this.s.jobs[i].running=true;this.s.jobs[i].progress=0;return true;}
     quote(i,mode=1){

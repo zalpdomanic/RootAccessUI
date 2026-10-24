@@ -172,3 +172,33 @@
 .job-actions .run,.job-actions .automate,.level-label,.action,.rack-status{font-weight:700}
 .buy-modes button[aria-pressed=true],.rack-tabs button[aria-pressed=true]{font-weight:700}
 .hack-multiplier{font-family:'Pixel Operator Mono',monospace;font-weight:700}
+
+/* Compact live job activity, following each job's actual completion cycle. */
+#game:is([data-panel=closed],[data-panel=jobs]) .drawer-header{height:max(112px,calc(var(--min-font)*2.8 + 12px))}
+#game:is([data-panel=closed],[data-panel=jobs]) #drawer-title{font-size:max(32px,var(--min-font))}
+.job-rings{display:flex;gap:12px;margin-left:24px;align-items:center}
+.job-ring{position:relative;display:grid;place-items:center;width:max(86px,calc(var(--min-font)*2.3));aspect-ratio:1;flex:none;color:#889da8;font:700 max(24px,var(--min-font))/1 var(--ui)}
+.job-ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);fill:none;stroke-width:5}
+.ring-track{stroke:#26404c}.ring-fill{stroke:var(--cyan);stroke-dasharray:100;stroke-dashoffset:100;stroke-linecap:round}
+.job-ring.running{color:var(--white);background:radial-gradient(circle,#00323b88,transparent 68%)}
+.job-ring.running .ring-fill{filter:drop-shadow(0 0 3px #00f0fa66)}
+.job-ring.locked{color:#6b6675}.job-ring.locked .ring-track{stroke:#352b38;stroke-dasharray:3 4}
+.upgrade-ready{margin-left:auto;padding:0 12px;color:var(--comfort-gold);font:400 max(22px,var(--min-font))/1 var(--ui);text-align:right}
+#game:is([data-panel=closed],[data-panel=jobs]) .chevron{flex-shrink:0;width:40px;margin-left:auto}
+#game[data-panel=jobs] .jobs-arrow{margin-left:auto;flex-shrink:0}
+
+/* Offline receipt: a quiet, squared terminal card over the room. */
+.offline-overlay{z-index:20;background:#00060dc9;backdrop-filter:blur(3px)}
+.offline-card{position:relative;width:900px;padding:44px 46px 32px;border:2px solid #495765;border-radius:3px;background:repeating-linear-gradient(0deg,#ffffff02 0 1px,transparent 1px 6px),linear-gradient(135deg,#121c29,#09141f);box-shadow:0 0 0 7px #08121dcc,0 35px 120px #0009}
+.offline-card:before,.offline-card:after{content:'';position:absolute;width:44px;height:44px;border-color:#a3c1ca;border-style:solid;pointer-events:none}
+.offline-card:before{left:-3px;top:-3px;border-width:3px 0 0 3px}.offline-card:after{right:-3px;bottom:-3px;border-width:0 3px 3px 0}
+.offline-eyebrow{font:400 max(24px,var(--min-font))/1 var(--ui);letter-spacing:5px;color:#9eabbc}
+.offline-card h1{font:700 max(53px,calc(var(--min-font)*1.4))/1.08 var(--ui);margin:32px 0 28px;color:#f1f0e9}
+.offline-card p{font:400 max(33px,var(--min-font))/1.45 var(--ui);color:#b7c4d0;margin:0 0 32px}
+.offline-stats{margin:0 0 30px;font:400 max(32px,var(--min-font))/1.4 var(--ui)}
+.offline-stats>div{display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:8px 0;border-bottom:1px solid #293947}
+.offline-stats dt{color:#e2e3e5}.offline-stats dd{margin:0;color:#8ee5e2;font:400 max(32px,var(--min-font))/1.2 var(--mono)}
+.offline-stats>div:last-child dd{color:var(--comfort-gold)}
+.offline-collect{position:relative;width:100%;min-height:max(100px,calc(var(--min-font)*2.6));border:2px solid #8ee5e2;background:#0d2a33;color:#b4f4ee;font:700 max(32px,var(--min-font))/1 var(--ui);letter-spacing:3px;box-shadow:inset 0 0 22px #67e5df09}
+.offline-collect:hover{background:#153c43}.offline-collect>span{position:absolute;right:28px;top:50%;transform:translateY(-50%);font-size:1.2em}
+.offline-footnote{display:block;margin-top:24px;color:#748a98;text-align:center;font:400 max(21px,var(--min-font))/1.2 var(--ui);letter-spacing:1px}

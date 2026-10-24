@@ -17,6 +17,8 @@ Depoyu indirin veya klonlayın, ardından `index.html` dosyasını tarayıcıda 
 - HACK ile para kazanın. Kırık beyaz buton 10 dokunuşta kırmızıyla dolar ve geçici iş hızı bonusu verir; hız çarpanı butonun üzerinde görünür.
 - REP 1'den başlayın; yeni işler REP 2, 3 ve 4'te açılır. REP seviyeleri devam eder.
 - JOBS menüsünden işleri çalıştırın, fiyatı görünen AUTO + düğmesiyle otomasyon satın alın.
+- JOBS başlığındaki küçük halkalar işlerin gerçek ilerlemesini gösterir; her tamamlanmada yeni tura başlar. Hazır işler ve kilitli işler sönük kalır.
+- Bir dakika veya daha uzun süre sonra dönünce çevrimdışı kazanç penceresi açılır. En fazla 8 saat hesaplanır; otomatik işler tekrar eder, manuel işler bir kez tamamlanır. Collect ile alınmayan kazanç sonraki açılış için saklanır.
 - JOBS okuna dokununca liste doğrudan tam açılır. Aşağı ok veya başlığı aşağı kaydırma menüyü kapatır. Üstteki para paneli ve alttaki HACK kontrolleri sabit kalır.
 - İşleri 1×, 10×, 100× veya BUY MAX ile yükseltin.
 - Server rack'e dokunup ekipman kurun. Rack başına 5 raf bulunur; menüde aynı anda 3 raf gösterilir, diğerlerine kaydırarak erişilir.
