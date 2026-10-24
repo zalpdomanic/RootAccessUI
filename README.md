@@ -22,7 +22,7 @@ Depoyu indirin veya klonlayın, ardından `index.html` dosyasını tarayıcıda 
 - Bir AFK dakikasından sonra Collect ile çekim yapılabilir. Watch ad · 2×, açıkça etiketlenen 5 saniyelik demo reklam önizlemesinden sonra iki kat öder; gerçek reklam ağı bağlı değildir. Önizleme arka planda duraklar, iptal edilirse ödeme yapılmaz. Alınmayan kazanç ve yarım kalan dakika kayıtta korunur.
 - JOBS okuna dokununca liste doğrudan tam açılır. Aşağı ok veya başlığı aşağı kaydırma menüyü kapatır. Üstteki para paneli ve alttaki HACK kontrolleri sabit kalır.
 - İşleri 1×, 10×, 100× veya BUY MAX ile yükseltin.
-- Server rack'e dokunup ekipman kurun. Rack başına 5 raf bulunur; menüde aynı anda 3 raf gösterilir, diğerlerine kaydırarak erişilir.
+- Server rack'e dokunup ekipman kurun. Rack, ekipman kurulum ve yerdeki + ile açılan rack satın alma menüleri JOBS gibi HUD ile HACK arasındaki alanı tamamen kaplar. Rack başına 5 raf bulunur; uzun içerikler menü içinde kaydırılır.
 - Yerdeki + alanından ikinci bir 5 raflı rack satın alın.
 
 İlerleme tarayıcının localStorage alanında saklanır. Settings → Reset Demo ile sıfırlanır. Demodaki bütün tutarlar oyun içi sanal paradır.

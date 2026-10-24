@@ -54,17 +54,14 @@
 /* Keep the price inside the same one-tap automation action. */
 .job-actions .automate{display:flex;flex-direction:column;justify-content:center;gap:3px;font-size:max(27px,var(--min-font,12px))}.auto-price{display:block;font:inherit}
 .rep>div:first-child{justify-content:space-between;gap:16px}.rep #rep-level{white-space:nowrap;font-size:max(32px,var(--min-font,12px))}.rep #rep{font-size:max(32px,var(--min-font,12px))}
-#game[data-panel=install] .drawer-body{height:430px}#game[data-panel=install] #install-list{height:354px}#game[data-panel=install] .scene{height:630px}#game[data-panel=install] .scene-inner{transform:scale(.594)}
+
 
 /* One room expansion: the floor marker opens a whole rack purchase. */
 .new-rack-target{position:absolute;left:450px;top:630px;width:200px;height:370px;padding:0;border:0;background:none;filter:drop-shadow(12px 15px 7px #0007);z-index:2}.new-rack-target img{width:100%;height:100%;object-fit:fill;pointer-events:none}.new-rack-target:hover{filter:drop-shadow(0 0 5px #00f0fa66)}
 .rack-tabs{display:flex;gap:12px;height:48px;margin-bottom:12px}.rack-tabs button{flex:1;background:#031e2b;color:#94b2c1;border:2px solid #18576d;border-radius:6px;font:400 max(28px,var(--min-font,12px)) var(--ui)}.rack-tabs button[aria-pressed=true]{color:var(--cyan);border-color:var(--cyan);background:#07313e}
 
 
-/* Rack panels keep the room visible above the equipment list. */
-#game:is([data-panel=rack],[data-panel=new-rack]) .drawer-body{height:266px}
-#game:is([data-panel=rack],[data-panel=new-rack]) .scene{height:794px}
-#game:is([data-panel=rack],[data-panel=new-rack]) .scene-inner{transform:scale(.749)}
+/* Full-height panel contents share the same dock layout. */
 #jobs-view{height:100%;display:flex;flex-direction:column;min-height:0}
 .buy-modes{height:52px;flex-shrink:0;margin-bottom:8px}
 .job-list{height:auto;flex:1;min-height:0}
@@ -97,18 +94,18 @@
 :is(#rack-list,#new-rack-list):has(.selected) .selected .equipment-icon{height:78px}
 :is(#rack-list,#new-rack-list):has(.selected) .selected .equipment-icon svg{height:80px}
 
-/* Expanded jobs fill the space between the persistent HUD and hack controls. */
+/* Every open menu fills the space between the persistent HUD and hack controls. */
 .jobs-arrow{width:64px;height:64px;flex-shrink:0;padding:10px;margin-left:14px;background:none;border:0;color:var(--cyan);touch-action:none}
 .jobs-arrow svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:5;transition:transform .2s}
 
 #game[data-panel=jobs] #drawer-toggle .chevron{display:none}
 #game[data-panel=jobs] .drawer-header{position:relative;touch-action:none;user-select:none}
 #game[data-panel=jobs] .drawer-header:before{content:"";position:absolute;top:5px;left:calc(50% - 36px);width:72px;height:4px;border-radius:4px;background:#377b8d;pointer-events:none}
-#game[data-panel=jobs] .dock{top:310px;display:flex;flex-direction:column}
-#game[data-panel=jobs] .drawer-header{flex-shrink:0}
-#game[data-panel=jobs] .drawer-body{height:auto;flex:1;min-height:0}
-#game[data-panel=jobs] .hack-panel{flex-shrink:0}
-#game[data-panel=jobs] .scene{visibility:hidden;pointer-events:none}
+#game:not([data-panel=closed]) .dock{top:310px;display:flex;flex-direction:column}
+#game:not([data-panel=closed]) .drawer-header{flex-shrink:0}
+#game:not([data-panel=closed]) .drawer-body{height:auto;flex:1;min-height:0}
+#game:not([data-panel=closed]) .hack-panel{flex-shrink:0}
+#game:not([data-panel=closed]) .scene{visibility:hidden;pointer-events:none}
 #game[data-panel=jobs] .job-list{touch-action:pan-y;overscroll-behavior:contain}
 
 /* Keep every label at least 14 CSS pixels after the game is scaled. */
@@ -140,10 +137,10 @@
 #game[data-small-screen=true] .install-item{gap:12px;min-height:110px}
 #game[data-small-screen=true] .install-item .action{min-width:210px;max-width:260px}
 #game[data-small-screen=true] .job{grid-template-columns:max(142px,calc(var(--min-font)*3.5 + 24px)) minmax(0,1fr) 180px}
-#game:is([data-panel=rack],[data-panel=new-rack]) .drawer-body{height:var(--menu-height,266px)}
-#game:is([data-panel=rack],[data-panel=new-rack]) .scene{height:calc(1060px - var(--menu-height,266px))}
-#game:is([data-panel=rack],[data-panel=new-rack]) .scene-inner{transform:scale(var(--room-scale,.749))}
-:is(#rack-list,#new-rack-list){height:calc(var(--menu-height,266px) - 26px)}
+
+
+
+
 #game[data-panel=jobs] .drawer-body{height:auto}
 
 /* Rack purchases use the same shelf list and room footprint as owned racks. */
@@ -227,3 +224,19 @@
 .afk-ad p{margin:12px 0;font-size:max(27px,var(--min-font))}.afk-ad button{border:1px solid #8a9aa3;background:none;padding:14px 32px;font:400 max(28px,var(--min-font))/1 var(--ui)}
 .offline-overlay{padding:30px 0}.offline-card{max-height:calc(100% - 60px);overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#667f8d #101a25}
 .offline-card:before{left:0;top:0}.offline-card:after{right:0;bottom:0}
+
+/* Rack, purchase and installation keep their full height through navigation. */
+#game:is([data-panel=rack],[data-panel=new-rack],[data-panel=install]) .drawer-header{height:max(112px,calc(var(--min-font)*2.8 + 12px))}
+#game:is([data-panel=rack],[data-panel=new-rack],[data-panel=install]) #drawer-toggle{flex-direction:column;align-items:flex-start;justify-content:center;gap:8px}
+#game:is([data-panel=rack],[data-panel=new-rack],[data-panel=install]) #drawer-meta{border:0;margin:0;padding:0}
+#game:is([data-panel=rack],[data-panel=new-rack]) #rack-subtitle{display:none}
+:is(#rack-view,#new-rack-view,#install-view){height:100%;min-height:0;display:flex;flex-direction:column}
+:is(#rack-list,#new-rack-list),#game[data-panel=install] #install-list{height:auto;flex:1;min-height:0;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain}
+.install-heading{flex-shrink:0;height:max(52px,calc(var(--min-font)*1.5));margin-bottom:18px}
+:is(#rack-list,#new-rack-list) .rack-slot,:is(#rack-list,#new-rack-list):has(.selected) .rack-slot:not(.selected){min-height:max(154px,calc(var(--min-font)*3.5));margin-bottom:14px}
+:is(#rack-list,#new-rack-list) .rack-row{min-height:max(154px,calc(var(--min-font)*3.5));padding-top:18px;padding-bottom:18px}
+:is(#rack-list,#new-rack-list):has(.selected) .rack-slot.selected,:is(#rack-list,#new-rack-list):has(.selected) .selected .rack-row{min-height:max(218px,calc(var(--min-font)*5))}
+:is(#rack-list,#new-rack-list) .equipment-icon,:is(#rack-list,#new-rack-list):has(.selected) .equipment-icon{width:140px;height:100px}
+:is(#rack-list,#new-rack-list) .equipment-icon svg,:is(#rack-list,#new-rack-list):has(.selected) .selected .equipment-icon svg{width:140px;height:100px}
+#game[data-panel=install] .install-item{min-height:max(150px,calc(var(--min-font)*3.5));padding:18px 16px;margin-bottom:14px}
+.rack-benefit b{display:inline-block;white-space:nowrap}
