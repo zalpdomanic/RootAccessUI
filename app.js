@@ -52,7 +52,7 @@
   function rack(slot=-1,index=activeRack){activeRack=slot>=0?Math.floor(slot/5):index;selectedSlot=slot;setPanel('rack');}
   function openInstall(slot,job=null,origin='rack',type=null){installSlot=slot;installJob=job;installOrigin=origin;installType=type;activeRack=Math.floor(slot/5);$('install-back').setAttribute('aria-label',origin==='new-rack'?'Back to expansion options':'Back to rack');setPanel('install');}
 
-  $('job-list').innerHTML=JOBS.map((j,i)=>`<div class="job" id="job-${i}" data-run="${i}" tabindex="0" role="button" aria-label="Run ${j.name}"><div class="job-actions"><button class="run" data-run="${i}" aria-label="Start ${j.name}">RUN</button><button class="automate" data-automate="${i}" aria-label="Automate ${j.name}"><span>AUTO +</span><b class="auto-price"></b></button></div><div class="job-info"><div class="job-name">${j.name}</div><div class="job-stats"><span class="state"></span><span class="payout"></span></div><div class="job-track" role="progressbar" aria-label="${j.name} progress" aria-valuemin="0" aria-valuemax="100"><span></span></div></div><button class="level" data-level="${i}" aria-label="Level up ${j.name}"><span class="level-label">LEVEL UP</span><b></b></button></div>`).join('');
+  $('job-list').innerHTML=JOBS.map((j,i)=>`<article class="job menu-card" id="job-${i}" data-run="${i}" tabindex="0" role="button" aria-label="Run ${j.name}"><div class="job-card-head"><span class="job-code-icon" aria-hidden="true">${j.code.split('_')[0]}</span><div class="job-info"><span class="menu-eyebrow">${j.code.replace('_',' / ')}</span><div class="job-name">${j.name}</div><div class="job-stats"><span class="state"></span></div></div></div><div class="job-track" role="progressbar" aria-label="${j.name} progress" aria-valuemin="0" aria-valuemax="100"><span></span></div><div class="menu-offer"><span class="menu-price"><small>PER RUN</small><b class="payout"></b></span><button class="run menu-action" data-run="${i}" aria-label="Start ${j.name}">RUN</button></div><div class="menu-offer automation-offer"><span class="menu-price"><small>AUTOMATION</small><b class="auto-price"></b></span><button class="automate menu-action" data-automate="${i}" aria-label="Automate ${j.name}">AUTO +</button></div><div class="menu-offer"><span class="menu-price"><small>UPGRADE COST</small><b class="level-price"></b></span><button class="level menu-action" data-level="${i}" aria-label="Level up ${j.name}"><span class="level-label">LEVEL UP</span></button></div></article>`).join('');
   $('job-rings').innerHTML=JOBS.map((j,i)=>`<span class="job-ring" id="job-ring-${i}" role="img"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="ring-track" cx="50" cy="50" r="44"/><circle class="ring-fill" cx="50" cy="50" r="44" pathLength="100"/></svg><span>${j.code.split('_')[0]}</span></span>`).join('');
   function equipmentIcon(type){
     if(!type)return '<span class="empty-equipment">+</span>';
@@ -66,21 +66,23 @@
     const previousScroll=$('rack-list').scrollTop;
     $('rack-list').innerHTML=game.s.slots.slice(activeRack*5,activeRack*5+5).map((s,n)=>{
       const i=activeRack*5+n,selected=selectedSlot===i,title=!s?'Empty shelf':s.type==='rig'?'Automation rig':'Fiber modem';
-      let info='',action='';
-      if(!s)action='<span class="rack-status install">INSTALL</span>';
-      else if(s.type==='rig'){
-        info='<small>'+JOBS[s.job].name+'</small>'+(selected?'<span class="rack-benefit">AUTO REPEAT</span>':'');
-        action='<span class="rack-status auto">AUTO</span>';
+      let info='',action='',detail='';
+      if(!s){
+        info='<small>Space for one rig or modem.</small>';
+        detail='<span class="menu-price"><small>AVAILABLE</small><b class="rack-availability">Empty shelf</b></span>';
+        action='<button class="menu-action" data-slot="'+i+'">INSTALL <span aria-hidden="true">↗</span></button>';
+      }else if(s.type==='rig'){
+        info='<small>'+JOBS[s.job].name+'</small>'+(selected?'<span class="rack-benefit">Repeats automatically while away.</span>':'');
+        detail='<span class="menu-price"><small>AUTOMATION</small><b class="rack-availability">AUTO REPEAT</b></span>';
+        action='<button class="menu-action" data-slot="'+i+'">'+(selected?'COLLAPSE':'DETAILS')+'</button>';
       }else{
         const bonus=20+(s.level-1)*4,cost=1500000*2**(s.level-1);
-        info='<span class="equipment-level">LV '+s.level+(selected&&s.level<5?' <b>→ '+(s.level+1)+'</b>':'')+'</span>';
-        if(selected){
-          info+='<span class="rack-benefit">ALL JOB SPEED <b>+'+bonus+'%'+(s.level<5?' → +'+(bonus+4)+'%':'')+'</b></span>';
-          if(s.level<5)info+='<span class="rack-benefit">COMFORT <b>+2</b></span>';
-          action=s.level>=5?'<span class="rack-status capped">MAX LEVEL</span>':'<button class="rack-upgrade action" data-upgrade '+(game.s.money<cost?'disabled':'')+'>UPGRADE<b>'+cash(cost)+'</b></button>';
-        }else action='<span class="rack-status inspect">UPGRADE</span>';
+        info='<small>LV '+s.level+' · All job speed +'+bonus+'%</small>';
+        if(selected&&s.level<5)info+='<span class="rack-benefit">NEXT LEVEL <b>+'+(bonus+4)+'% SPEED · +2 COMFORT</b></span>';
+        detail='<span class="menu-price"><small>'+(s.level>=5?'FULLY UPGRADED':'UPGRADE COST')+'</small><b>'+(s.level>=5?'LEVEL 5':cash(cost))+'</b></span>';
+        action=s.level>=5?'<button class="menu-action" disabled>MAX LEVEL</button>':selected?'<button class="menu-action" data-upgrade '+(game.s.money<cost?'disabled':'')+'>UPGRADE <span aria-hidden="true">↗</span></button>':'<button class="menu-action" data-slot="'+i+'">DETAILS <span aria-hidden="true">›</span></button>';
       }
-      return '<div class="rack-slot '+(selected?'selected ':'')+(s?.type||'empty')+'"><button class="rack-row" data-slot="'+i+'" aria-label="Shelf '+(n+1)+': '+title+'" aria-expanded="'+selected+'"><span class="slot-number">0'+(n+1)+'</span><span class="equipment-icon">'+equipmentIcon(s?.type)+'</span><span class="rack-name"><span class="equipment-title">'+title+'</span>'+info+'</span></button>'+action+'</div>';
+      return '<div class="rack-slot menu-card '+(selected?'selected ':'')+(s?.type||'empty')+'"><button class="rack-row" data-slot="'+i+'" aria-label="Shelf '+(n+1)+': '+title+'" aria-expanded="'+selected+'"><span class="equipment-icon">'+equipmentIcon(s?.type)+'</span><span class="rack-name"><span class="menu-eyebrow">SHELF 0'+(n+1)+'</span><span class="equipment-title">'+title+'</span>'+info+'</span></button><div class="menu-offer">'+detail+action+'</div></div>';
     }).join('');
     $('rack-list').scrollTop=previousScroll;
     if(selectedSlot>=0)$('rack-list').children[selectedSlot%5]?.scrollIntoView({block:'nearest'});
@@ -124,8 +126,8 @@
       const ringLabel=JOBS[i].name+': '+(locked?'locked':active?Math.floor(ringProgress)+'% complete':'ready');ring.setAttribute('aria-label',ringLabel);ring.title=ringLabel;
       const run=el.querySelector('.run');run.textContent=locked?'LOCKED':game.auto(i)?'AUTO':j.running?'RUNNING':'RUN';run.classList.toggle('auto',game.auto(i));run.disabled=locked||j.running;
       el.querySelector('.state').textContent=locked?'REP LV '+(i+1):`LV ${j.level} · ${j.running?Math.ceil((JOBS[i].seconds-j.progress)/game.speed(now))+'s':'Ready'}`;
-      el.querySelector('.payout').textContent=cash(game.payout(i,now))+' / run';const progress=100*j.progress/JOBS[i].seconds;el.querySelector('.job-track>span').style.width=progress+'%';el.querySelector('.job-track').setAttribute('aria-valuenow',Math.floor(progress));
-      const level=el.querySelector('.level'),q=game.quote(i,s.buyMode);level.disabled=!q.affordable;level.querySelector('.level-label').textContent=j.level>=25?'MAX LEVEL':'LEVEL UP'+(q.count?' +'+q.count:'');level.querySelector('b').textContent=j.level>=25?'25 / 25':cash(q.cost||game.cost(i));level.title=q.count+' levels · '+fullCash(q.cost)+' · Level cap 25';const autoBtn=el.querySelector('.automate');autoBtn.hidden=locked||game.auto(i);autoBtn.querySelector('.auto-price').textContent=cash(game.automationCost(i));const full=s.slots.every(Boolean);autoBtn.disabled=locked||full||s.money<game.automationCost(i);autoBtn.title=full?'RACK FULL · '+s.slots.length+' / '+s.slots.length:'AUTO + · '+fullCash(game.automationCost(i));autoBtn.setAttribute('aria-label','Automate '+JOBS[i].name+' for '+fullCash(game.automationCost(i))+(full?' · Rack full':''));
+      el.querySelector('.payout').textContent=cash(game.payout(i,now));const progress=100*j.progress/JOBS[i].seconds;el.querySelector('.job-track>span').style.width=progress+'%';el.querySelector('.job-track').setAttribute('aria-valuenow',Math.floor(progress));
+      const level=el.querySelector('.level'),q=game.quote(i,s.buyMode);level.disabled=!q.affordable;level.querySelector('.level-label').textContent=j.level>=25?'MAX LEVEL':'LEVEL UP'+(q.count?' +'+q.count:'');el.querySelector('.level-price').textContent=j.level>=25?'25 / 25':cash(q.cost||game.cost(i));level.title=q.count+' levels · '+fullCash(q.cost)+' · Level cap 25';const autoBtn=el.querySelector('.automate');autoBtn.hidden=locked||game.auto(i);el.querySelector('.automation-offer').hidden=autoBtn.hidden;el.querySelector('.auto-price').textContent=cash(game.automationCost(i));const full=s.slots.every(Boolean);autoBtn.disabled=locked||full||s.money<game.automationCost(i);autoBtn.title=full?'RACK FULL · '+s.slots.length+' / '+s.slots.length:'AUTO + · '+fullCash(game.automationCost(i));autoBtn.setAttribute('aria-label','Automate '+JOBS[i].name+' for '+fullCash(game.automationCost(i))+(full?' · Rack full':''));
     });
     if(panel==='rack')renderRack();if(panel==='install')renderInstall();if(panel==='new-rack')renderExpansion();renderAfk(now);
   }
