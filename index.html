@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#00111b"><meta name="description" content="ROOT ACCESS playable mobile prototype"><title>ROOT ACCESS</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2300111b'/%3E%3Ctext x='8' y='44' fill='%2300f2ff' font-size='40' font-family='monospace'%3E%3E_%3C/text%3E%3C/svg%3E"><link rel="stylesheet" href="style.css?v=20261024-offline-rings"></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#00111b"><meta name="description" content="ROOT ACCESS playable mobile prototype"><title>ROOT ACCESS</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2300111b'/%3E%3Ctext x='8' y='44' fill='%2300f2ff' font-size='40' font-family='monospace'%3E%3E_%3C/text%3E%3C/svg%3E"><link rel="stylesheet" href="style.css?v=20261024-afk-wallet"></head>
 <body>
 <div id="viewport"><main id="game" aria-label="ROOT ACCESS" data-panel="closed">
   <section class="hud" aria-label="Player status">
-    <div class="wallet-line"><strong id="money">$2.48M</strong><span class="income">• <span id="income">+$0/s</span></span><button id="settings" class="gear" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m19.4 13 .1-1-.1-1 2-1.5-2-3.5-2.3 1a8 8 0 0 0-1.7-1L15 3h-4l-.4 3-1.8 1-2.2-1-2 3.5L6.5 11l-.1 1 .1 1-1.9 1.5 2 3.5 2.2-1 1.8 1 .4 3h4l.4-3 1.7-1 2.3 1 2-3.5z"/><circle cx="13" cy="12" r="3.8"/></svg></button></div>
+    <div class="wallet-line"><strong id="money">$2.48M</strong><span class="income">• <span id="income">+$0/s</span></span><button id="afk-open" class="afk-launch" aria-label="Open AFK earnings" aria-haspopup="dialog" aria-controls="offline-overlay"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12M6 21h12M7 3v4c0 3 3 4 5 5-2 1-5 2-5 5v4m10-18v4c0 3-3 4-5 5 2 1 5 2 5 5v4M9 18h6"/></svg><span>AFK</span><i id="afk-ready" hidden></i></button><button id="settings" class="gear" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m19.4 13 .1-1-.1-1 2-1.5-2-3.5-2.3 1a8 8 0 0 0-1.7-1L15 3h-4l-.4 3-1.8 1-2.2-1-2 3.5L6.5 11l-.1 1 .1 1-1.9 1.5 2 3.5 2.2-1 1.8 1 .4 3h4l.4-3 1.7-1 2.3 1 2-3.5z"/><circle cx="13" cy="12" r="3.8"/></svg></button></div>
     <div class="hud-bottom"><div class="rep"><div><span id="rep-level">REP LV 1</span><span id="rep">0 / 30</span></div><div class="rep-track" role="progressbar" aria-label="Reputation level 1" aria-valuemin="0" aria-valuemax="30" aria-valuenow="0"><span id="rep-fill"></span></div></div><div class="comfort">COMFORT <span id="comfort">5</span></div></div>
   </section>
   <div class="scene" aria-label="Room"><div class="scene-inner"><img class="room-art" src="assets/room-clean.png" alt="Isometric hacker room with a server rack, computer desk and bed" draggable="false"><button class="room-target rack-target" data-room="rack" aria-label="Server rack upgrades"></button><button class="room-target server-target" data-room="automation" aria-label="Automation rigs"></button><button id="add-rack-target" class="room-target empty-target" data-room="new-rack" aria-label="Add server rack"></button><button id="new-rack-target" class="new-rack-target" data-room="rack-two" aria-label="Server rack 02" hidden><img src="assets/empty-rack.png" alt="" draggable="false"></button></div></div>
@@ -15,14 +15,19 @@
   <div id="rewards" aria-hidden="true"></div><div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="offline-overlay" class="overlay offline-overlay" hidden>
     <section class="offline-card" role="dialog" aria-modal="true" aria-labelledby="offline-title" aria-describedby="offline-duration">
-      <span class="offline-eyebrow">WELCOME BACK</span>
-      <h1 id="offline-title">Your rigs kept working</h1>
-      <p id="offline-duration"></p>
-      <dl class="offline-stats"><div><dt>Jobs completed</dt><dd id="offline-jobs">0</dd></div><div><dt>Credits earned</dt><dd id="offline-credits">$0</dd></div></dl>
-      <button id="offline-collect" class="offline-collect">Collect <span aria-hidden="true">↗</span></button>
-      <span class="offline-footnote">CONNECTION RESTORED · EARNINGS SECURED</span>
+      <header class="afk-header"><span class="offline-eyebrow">PASSIVE INCOME</span><button id="afk-close" aria-label="Close AFK earnings">×</button></header>
+      <h1 id="offline-title">AFK earnings</h1>
+      <p id="offline-duration">Your rigs earn while you are away.</p>
+      <div class="afk-clock"><span>AFK TIME</span><strong id="afk-timer" aria-label="Accumulation time">00:00:00</strong><small>HOURS <span>MINUTES</span> SECONDS</small></div>
+      <dl class="offline-stats"><div><dt>Jobs completed</dt><dd id="offline-jobs">0</dd></div><div><dt>Ready to collect</dt><dd id="offline-credits">$0</dd></div></dl>
+      <div class="afk-update"><span id="afk-next">Next update in 01:00</span><span>8H CAP</span></div>
+      <div class="afk-minute-track" aria-hidden="true"><span id="afk-minute-fill"></span></div>
+      <div id="afk-actions" class="afk-actions"><button id="offline-collect" class="offline-collect">Collect <b id="afk-collect-amount">$0</b></button><button id="afk-double" class="offline-collect afk-double"><span class="ad-play" aria-hidden="true">▶</span> Watch ad · 2× <b id="afk-double-amount">$0</b></button></div>
+      <div id="afk-ad" class="afk-ad" hidden><span class="offline-eyebrow">DEMO AD</span><strong id="afk-ad-countdown">5</strong><p>Rewarded ad preview. No real ad is served.</p><button id="afk-ad-cancel">Cancel</button></div>
+      <span id="afk-hint" class="offline-footnote" role="status">First collection unlocks in 01:00</span>
+      <span class="afk-ad-note">2× uses a demo ad preview.</span>
     </section>
   </div>
   <div id="settings-overlay" class="overlay" hidden><section role="dialog" aria-modal="true" aria-labelledby="settings-title" class="settings-card"><header><h1 id="settings-title">SETTINGS</h1><button id="settings-close" aria-label="Close settings">×</button></header><button id="resume" class="menu-button">RESUME</button><button id="reset" class="menu-button secondary">RESET DEMO</button><div id="reset-confirm" hidden><p>Reset all progress?</p><div><button id="reset-yes" class="menu-button">RESET</button><button id="reset-no" class="menu-button secondary">CANCEL</button></div></div></section></div>
-</main></div><script src="engine.js?v=20261024-offline-rings"></script><script src="app.js?v=20261024-offline-rings"></script>
+</main></div><script src="engine.js?v=20261024-afk-wallet"></script><script src="app.js?v=20261024-afk-wallet"></script>
 </body></html>

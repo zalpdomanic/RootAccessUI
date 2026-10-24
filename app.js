@@ -6,23 +6,47 @@
   let panel='closed',barFullUntil=0,activeRack=0,selectedSlot=-1,installSlot=2,installJob=null,lastSaved=0,rackKey='',installKey='',toastTimer;
   const cash=n=>'$'+(n>=1e6?(n/1e6).toFixed(2).replace(/0$/,'')+'M':n>=100000?(n/1000).toFixed(1)+'K':n>=1000?Math.floor(n).toLocaleString('en-US'):n.toFixed(n<100?1:0));
   const fullCash=n=>'$'+n.toLocaleString('en-US',{maximumFractionDigits:2});
+  const afkCash=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   function fit(){const s=Math.min(window.innerWidth/1080,window.innerHeight/1920),minFont=Math.ceil(14/s*100)/100,menuHeight=Math.max(266,Math.ceil(minFont*6.6+56));$('viewport').style.width=1080*s+'px';$('viewport').style.height=1920*s+'px';$('game').style.setProperty('--min-font',minFont+'px');$('game').style.setProperty('--price-font',Math.max(12,Math.round(30*s))/s+'px');$('game').style.setProperty('--menu-height',menuHeight+'px');$('game').style.setProperty('--room-scale',(1060-menuHeight)/1060);$('game').dataset.smallScreen=s<.4;$('game').style.zoom=s;$('game').style.transform='none';}
   window.addEventListener('resize',fit);if(window.visualViewport)window.visualViewport.addEventListener('resize',fit);fit();
   function put(id,value){const el=$(id),str=String(value);if(el.textContent!==str)el.textContent=str;}
   function save(){try{localStorage.setItem(KEY,JSON.stringify(game.s));}catch{}}
   function tell(text){put('toast',text);$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),2000);}
-  const duration=ms=>{const minutes=Math.floor(ms/60000),hours=Math.floor(minutes/60);return hours?hours+'h '+minutes%60+'m':Math.max(1,minutes)+'m';};
-  let offlineFocus=null;
+  const timer=ms=>{const t=Math.max(0,Math.floor(ms/1000));return [Math.floor(t/3600),Math.floor(t/60)%60,t%60].map(n=>String(n).padStart(2,'0')).join(':');};
+  const shortTimer=ms=>timer(Math.ceil(ms/1000)*1000).slice(3);
+  let offlineFocus=null,adRemaining=0,adLast=0,collectMessage='',collectMessageUntil=0;
+  function renderAfk(now=Date.now()){
+    const status=game.afkStatus();$('afk-ready').hidden=!status.ready;
+    $('afk-open').title=status.ready?'AFK earnings ready: '+fullCash(status.amount):'AFK earnings';
+    if($('offline-overlay').hidden)return;
+    put('afk-timer',timer(status.elapsed));put('offline-jobs',status.jobs.toLocaleString('en-US'));
+    const amount=afkCash(status.amount);put('offline-credits',amount);put('afk-collect-amount',amount);put('afk-double-amount',afkCash(status.amount*2));
+    put('offline-duration','Your rigs earn while the game is closed or in the background.');
+    put('afk-next',status.capped?'Storage full': 'Next AFK update in '+shortTimer(status.next));
+    $('afk-minute-fill').style.width=(status.capped?100:status.elapsed%60000/600)+'%';
+    $('offline-collect').disabled=!status.ready||adRemaining>0;$('afk-double').disabled=!status.ready||adRemaining>0;
+    const hasRig=game.s.jobs.some((_,i)=>game.auto(i)&&game.unlocked(i));
+    put('afk-hint',now<collectMessageUntil?collectMessage:status.capped?'8-hour limit reached · Collect to continue':!hasRig?'Install an AUTO rig to earn while away':status.ready?'Paused while playing · Collect whenever you like':'Paused while playing · Unlocks after '+shortTimer(Math.max(0,60000-status.elapsed))+' AFK');
+    if(adRemaining>0){
+      adRemaining=Math.max(0,adRemaining-(now-adLast));adLast=now;
+      put('afk-ad-countdown',Math.ceil(adRemaining/1000)+'s');
+      if(!adRemaining){$('afk-ad').hidden=true;$('afk-actions').hidden=false;claimAfk(2);}
+    }
+  }
   function showOffline(){
-    const reward=game.s.offlineReward;if(!reward)return;
-    put('offline-duration','You were away '+duration(reward.away)+'. Your rigs earn for up to 8h while you are away.');
-    put('offline-jobs',reward.jobs.toLocaleString('en-US'));put('offline-credits',cash(reward.amount));$('offline-credits').title=fullCash(reward.amount);
+    if(!$('settings-overlay').hidden)closeSettings();
     if($('offline-overlay').hidden)offlineFocus=document.activeElement;
     $('offline-overlay').hidden=false;
     [...$('game').children].forEach(el=>{if(el!==$('offline-overlay'))el.inert=true;});
-    $('offline-collect').focus();
+    renderAfk();$('afk-close').focus();
   }
-  $('offline-collect').onclick=()=>{const reward=game.collectOffline();save();$('offline-overlay').hidden=true;[...$('game').children].forEach(el=>el.inert=false);render();if(offlineFocus?.isConnected&&offlineFocus!==document.body)offlineFocus.focus();else $('hack').focus();if(reward)tell('Collected '+cash(reward.amount));};
+  function cancelAd(){adRemaining=0;$('afk-ad').hidden=true;$('afk-actions').hidden=false;renderAfk();}
+  function closeAfk(){cancelAd();$('offline-overlay').hidden=true;[...$('game').children].forEach(el=>el.inert=false);if(offlineFocus?.isConnected&&offlineFocus!==document.body)offlineFocus.focus();else $('afk-open').focus();}
+  function claimAfk(multiplier){const reward=game.collectAfk(multiplier);if(!reward)return;save();collectMessage='Collected '+fullCash(reward.amount)+(multiplier===2?' · 2× reward':'');collectMessageUntil=Date.now()+5000;render();$('afk-close').focus();}
+  $('afk-open').onclick=showOffline;$('afk-close').onclick=closeAfk;
+  $('offline-collect').onclick=()=>claimAfk(1);
+  $('afk-double').onclick=()=>{if(!game.afkStatus().ready||adRemaining)return;adRemaining=5000;adLast=Date.now();$('afk-actions').hidden=true;$('afk-ad').hidden=false;put('afk-ad-countdown','5s');$('afk-ad-cancel').focus();};
+  $('afk-ad-cancel').onclick=()=>{cancelAd();$('afk-double').focus();};
   function lowerJobs(){setPanel('closed');}
   function setPanel(p){panel=p;$('game').dataset.panel=p;$('drawer-body').hidden=p==='closed';$('jobs-view').hidden=p!=='jobs';$('rack-view').hidden=p!=='rack';$('rack-subtitle').hidden=p!=='rack'&&p!=='new-rack';$('buy-rack').hidden=p!=='new-rack';$('install-view').hidden=p!=='install';$('new-rack-view').hidden=p!=='new-rack';$('drawer-toggle').setAttribute('aria-expanded',p!=='closed');$('jobs-collapse').hidden=p!=='jobs';$('drawer-close').hidden=p==='closed'||p==='jobs';put('drawer-title',p==='new-rack'||p==='rack'||p==='install'?'SERVER RACK':'JOBS');rackKey='';installKey='';render();}
   function rack(slot=-1,index=activeRack){activeRack=slot>=0?Math.floor(slot/5):index;selectedSlot=slot;setPanel('rack');}
@@ -89,7 +113,7 @@
       el.querySelector('.payout').textContent=cash(game.payout(i,now))+' / run';const progress=100*j.progress/JOBS[i].seconds;el.querySelector('.job-track>span').style.width=progress+'%';el.querySelector('.job-track').setAttribute('aria-valuenow',Math.floor(progress));
       const level=el.querySelector('.level'),q=game.quote(i,s.buyMode);level.disabled=!q.affordable;level.querySelector('.level-label').textContent=j.level>=25?'MAX LEVEL':'LEVEL UP'+(q.count?' +'+q.count:'');level.querySelector('b').textContent=j.level>=25?'25 / 25':cash(q.cost||game.cost(i));level.title=q.count+' levels · '+fullCash(q.cost)+' · Level cap 25';const autoBtn=el.querySelector('.automate');autoBtn.hidden=locked||game.auto(i);autoBtn.querySelector('.auto-price').textContent=cash(game.automationCost(i));const full=s.slots.every(Boolean);autoBtn.disabled=locked||full||s.money<game.automationCost(i);autoBtn.title=full?'RACK FULL · '+s.slots.length+' / '+s.slots.length:'AUTO + · '+fullCash(game.automationCost(i));autoBtn.setAttribute('aria-label','Automate '+JOBS[i].name+' for '+fullCash(game.automationCost(i))+(full?' · Rack full':''));
     });
-    if(panel==='rack')renderRack();if(panel==='install')renderInstall();
+    if(panel==='rack')renderRack();if(panel==='install')renderInstall();renderAfk(now);
   }
   function hack(){if(!$('settings-overlay').hidden||!$('offline-overlay').hidden)return;barFullUntil=0;const {amount,bonus}=game.hack();const reward=document.createElement('span');reward.className='reward'+(bonus?' bonus':'');reward.textContent='+'+cash(bonus||amount);reward.style.marginLeft=(Math.random()*60-30)+'px';$('rewards').append(reward);setTimeout(()=>reward.remove(),950);if(bonus)barFullUntil=Date.now()+450;render();save();}
   function closeSettings(){$('settings-overlay').hidden=true;$('settings').focus();}
@@ -137,15 +161,18 @@
     if(el.hasAttribute('data-jobs'))setPanel('jobs');
   });
   document.addEventListener('keydown',e=>{
-    if(!$('offline-overlay').hidden){if(e.key==='Tab'){e.preventDefault();$('offline-collect').focus();}if(e.key==='Escape')e.preventDefault();return;}
+    if(!$('offline-overlay').hidden){
+      if(e.key==='Escape'){e.preventDefault();closeAfk();}
+      if(e.key==='Tab'){const buttons=[...$('offline-overlay').querySelectorAll('button')].filter(b=>!b.disabled&&!b.closest('[hidden]')),first=buttons[0],last=buttons.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}return;
+    }
     if(!$('settings-overlay').hidden){if(e.key==='Escape'){e.preventDefault();closeSettings();}if(e.key==='Tab'){const buttons=[...$('settings-overlay').querySelectorAll('button')].filter(x=>!x.closest('[hidden]'));const first=buttons[0],last=buttons.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}return;}
     if(e.key==='Escape'){lowerJobs();return;}
     if(e.target.classList.contains('job')&&(e.key==='Enter'||e.code==='Space')){e.preventDefault();if(!e.repeat)e.target.click();return;}
     if(e.code==='Space'&&e.target===document.body){e.preventDefault();if(!e.repeat){hack();$('hack').classList.add('pressed');}}
   });
   document.addEventListener('keyup',e=>{if(e.code==='Space')$('hack').classList.remove('pressed');});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){game.tick();save();}else{game.resumeOffline(game.s.last);save();render();showOffline();}});window.addEventListener('pagehide',save);
-  window.addEventListener('pageshow',e=>{if(e.persisted&&!document.hidden){game.resumeOffline(game.s.last);save();render();showOffline();}});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){game.tick();save();}else{game.resumeOffline(game.s.last);adLast=Date.now();save();render();}});window.addEventListener('pagehide',save);
+  window.addEventListener('pageshow',e=>{if(e.persisted&&!document.hidden){game.resumeOffline(game.s.last);adLast=Date.now();save();render();}});
   setInterval(()=>{if(document.hidden)return;const now=Date.now();game.tick(now);render(now);if(now-lastSaved>2000){save();lastSaved=now;}},100);
-  render();save();showOffline();
+  render();save();
 })();

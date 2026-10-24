@@ -18,7 +18,8 @@ Depoyu indirin veya klonlayın, ardından `index.html` dosyasını tarayıcıda 
 - REP 1'den başlayın; yeni işler REP 2, 3 ve 4'te açılır. REP seviyeleri devam eder.
 - JOBS menüsünden işleri çalıştırın, fiyatı görünen AUTO + düğmesiyle otomasyon satın alın.
 - JOBS başlığındaki küçük halkalar işlerin gerçek ilerlemesini gösterir; her tamamlanmada yeni tura başlar. Hazır işler ve kilitli işler sönük kalır.
-- Bir dakika veya daha uzun süre sonra dönünce çevrimdışı kazanç penceresi açılır. En fazla 8 saat hesaplanır; otomatik işler tekrar eder, manuel işler bir kez tamamlanır. Collect ile alınmayan kazanç sonraki açılış için saklanır.
+- Para panelindeki kum saatli AFK butonu kazanç penceresini açar. Otomatik rigler yalnızca oyun kapalı/arka plandayken AFK kasasına kazandırır; açıkken gelir cüzdana geçer. AFK süresi saat/dakika/saniye gösterilir ve oyun açıkken durur. Kasa tamamlanan her AFK dakikasında güncellenir, toplam 8 saatte dolar.
+- Bir AFK dakikasından sonra Collect ile çekim yapılabilir. Watch ad · 2×, açıkça etiketlenen 5 saniyelik demo reklam önizlemesinden sonra iki kat öder; gerçek reklam ağı bağlı değildir. Önizleme arka planda duraklar, iptal edilirse ödeme yapılmaz. Alınmayan kazanç ve yarım kalan dakika kayıtta korunur.
 - JOBS okuna dokununca liste doğrudan tam açılır. Aşağı ok veya başlığı aşağı kaydırma menüyü kapatır. Üstteki para paneli ve alttaki HACK kontrolleri sabit kalır.
 - İşleri 1×, 10×, 100× veya BUY MAX ile yükseltin.
 - Server rack'e dokunup ekipman kurun. Rack başına 5 raf bulunur; menüde aynı anda 3 raf gösterilir, diğerlerine kaydırarak erişilir.

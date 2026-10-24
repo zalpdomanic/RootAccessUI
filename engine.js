@@ -16,6 +16,11 @@
       if(this.s.rulesVersion<3){this.s.rep=0;this.s.jobs.forEach((j,i)=>{if(i>0){j.running=false;j.progress=0;}});this.s.rulesVersion=3;}
       if(![1,10,100,'max'].includes(this.s.buyMode))this.s.buyMode=1;
       const savedAt=Number.isFinite(this.s.last)?Math.min(now,this.s.last):now;
+      if(!this.s.afk){
+        const old=this.s.offlineReward;
+        this.s.afk={elapsed:old?Math.min(old.credited||old.away||60000,28800000):0,amount:old?.amount||0,jobs:old?.jobs||0,pending:0,pendingJobs:0};
+        delete this.s.offlineReward;
+      }
       this.s.income=[]; this.s.last=now;
       this.s.boosts=this.s.boosts.filter(t=>t>savedAt);
     }
@@ -38,41 +43,53 @@
     gain(amount,now){this.s.money+=amount;this.s.earned+=amount;this.s.income.push({t:now,a:amount});}
     log(message,now=Date.now()){this.s.log.unshift({message,t:now});this.s.log=this.s.log.slice(0,12);}
     rate(now=Date.now()){this.s.income=this.s.income.filter(x=>now-x.t<15000);return this.s.income.reduce((n,x)=>n+x.a,0)/15;}
-    resumeOffline(savedAt,now=Date.now()){
-      const away=Number.isFinite(savedAt)?Math.max(0,now-savedAt):0;
-      if(!away){this.s.last=now;return this.s.offlineReward||null;}
-      const credited=Math.min(away,8*60*60*1000),before=this.s.money,earned=this.s.earned,completed=this.s.completed;
-      this.s.last=savedAt;
-      const until=savedAt+credited;
-      // Stop at job completions while locked rigs could unlock through REP.
-      while(this.s.last<until&&this.s.jobs.some((j,i)=>!this.unlocked(i)&&(j.running||this.auto(i)))){
-        const next=this.s.jobs.reduce((ms,j,i)=>this.unlocked(i)&&(j.running||this.auto(i))?Math.min(ms,(JOBS[i].seconds-j.progress)/this.speed(this.s.last)*1000):ms,until-this.s.last);
-        const expiry=Math.min(...this.s.boosts.filter(t=>t>this.s.last),until);
-        this.tick(Math.min(until,expiry,this.s.last+Math.max(1,next)));
-      }
-      if(this.s.last<until)this.tick(until);
-      this.s.last=now;this.s.boosts=this.s.boosts.filter(t=>t>now);this.s.income=[];
-      const amount=this.s.money-before,jobs=this.s.completed-completed;
-      if(away>=60000&&amount>0){
-        this.s.money=before;this.s.earned=earned;
-        const pending=this.s.offlineReward||{amount:0,jobs:0,away:0,credited:0};
-        this.s.offlineReward={amount:pending.amount+amount,jobs:pending.jobs+jobs,away:pending.away+away,credited:pending.credited+credited};
-      }
-      return this.s.offlineReward||null;
+    afkStatus(){
+      const a=this.s.afk,elapsed=a.elapsed;
+      return {amount:a.amount,jobs:a.jobs,elapsed,capped:elapsed>=28800000,ready:elapsed>=60000&&a.amount>0,next:elapsed>=28800000?0:60000-elapsed%60000};
     }
-    collectOffline(){
-      const reward=this.s.offlineReward;if(!reward)return null;
-      this.s.money+=reward.amount;this.s.earned+=reward.amount;delete this.s.offlineReward;
+    collectAfk(multiplier=1,now=Date.now()){
+      if(multiplier!==1&&multiplier!==2)return null;
+      this.tick(now);if(!this.afkStatus().ready)return null;
+      const a=this.s.afk,reward={amount:a.amount*multiplier,jobs:a.jobs,multiplier};
+      this.s.money+=reward.amount;this.s.earned+=reward.amount;
+      // Keep the unfinished minute so collection never discards earned credits.
+      this.s.afk={elapsed:a.elapsed%60000,amount:0,jobs:0,pending:a.pending,pendingJobs:a.pendingJobs};
       return reward;
     }
+    resumeOffline(savedAt,now=Date.now()){
+      const away=Number.isFinite(savedAt)?Math.max(0,now-savedAt):0;
+      if(!this.s.jobs.some((_,i)=>this.auto(i)&&this.unlocked(i))){
+        if(away){this.s.last=savedAt;this.tick(now);}else this.s.last=now;
+        this.s.income=[];return this.afkStatus();
+      }
+      const credited=Math.min(away,Math.max(0,28800000-this.s.afk.elapsed));
+      if(credited){
+        this.s.last=savedAt;this.afkAccruing=true;
+        try{this.tick(savedAt+credited);}finally{this.afkAccruing=false;}
+      }
+      this.s.last=now;this.s.boosts=this.s.boosts.filter(t=>t>now);this.s.income=[];
+      return this.afkStatus();
+    }
     tick(now=Date.now()){
-      let from=this.s.last; this.s.last=now;
-      // Integrate at effect boundaries so every boost expires independently.
-      let boundaries=[...this.s.boosts].filter(t=>t>from&&t<now).sort((a,b)=>a-b);
-      for(const to of [...boundaries,now]){if(to>from){this.advance((to-from)/1000*this.speed(from),to,from);from=to;}}
+      let from=this.s.last;if(now<=from)return;this.s.last=now;
+      // Offline minute boundaries settle the bank; boosts and REP unlocks stay exact.
+      while(from<now){
+        let to=Math.min(now,...this.s.boosts.filter(t=>t>from));
+        if(this.afkAccruing)to=Math.min(to,from+60000-this.s.afk.elapsed%60000);
+        if(this.s.jobs.some((j,i)=>!this.unlocked(i)&&(j.running||this.auto(i)))){
+          const next=this.s.jobs.reduce((ms,j,i)=>this.unlocked(i)&&(j.running||this.auto(i))?Math.min(ms,(JOBS[i].seconds-j.progress)/this.speed(from)*1000):ms,to-from);
+          to=Math.min(to,from+Math.max(1,Math.ceil(next)));
+        }
+        this.advance((to-from)/1000*this.speed(from),to,from);
+        if(this.afkAccruing){
+          const a=this.s.afk,minute=Math.floor(a.elapsed/60000);a.elapsed+=to-from;
+          if(Math.floor(a.elapsed/60000)>minute){a.amount+=a.pending;a.jobs+=a.pendingJobs;a.pending=0;a.pendingJobs=0;}
+        }
+        from=to;
+      }
       this.s.boosts=this.s.boosts.filter(t=>t>now);this.rate(now);
     }
-    advance(seconds,now,payoutAt=now){const unlocked=this.s.jobs.map((_,i)=>this.unlocked(i));this.s.jobs.forEach((j,i)=>{if(!unlocked[i])return;const automated=this.auto(i);if(automated)j.running=true;if(!j.running)return;j.progress+=seconds;const count=Math.min(Math.floor(j.progress/JOBS[i].seconds),automated?Infinity:1);if(!count)return;j.progress-=count*JOBS[i].seconds;this.gain(this.payout(i,payoutAt)*count,now);this.s.rep+=JOBS[i].repGain*count;this.s.completed+=count;if(!automated){j.running=false;j.progress=0;this.log(JOBS[i].name+' tamamlandı',now);}});}
+    advance(seconds,now,payoutAt=now){const unlocked=this.s.jobs.map((_,i)=>this.unlocked(i));this.s.jobs.forEach((j,i)=>{if(!unlocked[i])return;const automated=this.auto(i);if(automated)j.running=true;if(!j.running)return;j.progress+=seconds;const count=Math.min(Math.floor(j.progress/JOBS[i].seconds),automated?Infinity:1);if(!count)return;j.progress-=count*JOBS[i].seconds;const amount=this.payout(i,payoutAt)*count;if(automated&&this.afkAccruing){this.s.afk.pending+=amount;this.s.afk.pendingJobs+=count;}else this.gain(amount,now);this.s.rep+=JOBS[i].repGain*count;this.s.completed+=count;if(!automated){j.running=false;j.progress=0;this.log(JOBS[i].name+' tamamlandı',now);}});}
     hack(now=Date.now()){this.tick(now);const amount=this.tapValue(now);this.gain(amount,now);this.s.totalTaps++;this.s.taps++;this.advance(0.35,now);let bonus=0;if(this.s.taps===10){this.s.taps=0;bonus=amount*15;this.gain(bonus,now);this.s.boosts.push(now+12000);this.log('Bar doldu · +%25 hız / 12 sn',now);}return {amount,bonus};}
     run(i){if(!this.unlocked(i)||this.s.jobs[i].running)return false;this.s.jobs[i].running=true;this.s.jobs[i].progress=0;return true;}
     quote(i,mode=1){
