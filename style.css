@@ -294,6 +294,9 @@
 .job-ring.running .ring-fill{stroke:#9dc5c0;filter:none}.job-ring.running{background:radial-gradient(circle,#31433b66,transparent 68%)}
 
 /* Room affordances are live UI, independent of the supplied night artwork. */
+/* Keep a deep night surround, opening gradually toward the HUD and controls. */
+#game{background:linear-gradient(180deg,#00121d 0%,#00111b 6%,#010e18 13%,#020a12 20%,#02060d 28%,#02050c 38%,#02050c 59%,#02070e 67%,#010b13 75%,#001019 86%,#00121d 100%)}
+#game:before{mask-image:linear-gradient(to bottom,#000, #0008 12%,transparent 28%,transparent 66%,#0006 84%,#000)}
 /* Fade only the art silhouette; room controls remain sharp and fully visible. */
 .room-marker{position:absolute;width:80px;height:80px;right:28px;bottom:34px;fill:#00151bbd;stroke:#78d7d8;stroke-width:3;filter:drop-shadow(0 0 7px #00effa44)}
 .room-marker path{fill:none;stroke-width:4}
