@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1348 1294">
+  <defs>
+    <filter id="soft-edge" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="40"/>
+    </filter>
+  </defs>
+  <!-- Follow the room silhouette so the empty image corners blend into the game. -->
+  <path d="M105 453 738 86 1263 392 1263 812 617 1183 89 885Z" fill="white" filter="url(#soft-edge)"/>
+</svg>
