@@ -3,20 +3,18 @@
   const {Game,JOBS}=RootAccess;
   const $=id=>document.getElementById(id),KEY='root-access-mobile-v2';
   let game,raw;try{raw=JSON.parse(localStorage.getItem(KEY));game=new Game(raw);}catch{game=new Game();}
-  let panel='closed',jobsExpanded=false,barFullUntil=0,activeRack=0,selectedSlot=-1,installSlot=2,installJob=null,lastSaved=0,rackKey='',installKey='',toastTimer;
+  let panel='closed',barFullUntil=0,activeRack=0,selectedSlot=-1,installSlot=2,installJob=null,lastSaved=0,rackKey='',installKey='',toastTimer;
   const cash=n=>'$'+(n>=1e6?(n/1e6).toFixed(2).replace(/0$/,'')+'M':n>=100000?(n/1000).toFixed(1)+'K':n>=1000?Math.floor(n).toLocaleString('en-US'):n.toFixed(n<100?1:0));
   const fullCash=n=>'$'+n.toLocaleString('en-US',{maximumFractionDigits:2});
-  function fit(){const s=Math.min(window.innerWidth/1080,window.innerHeight/1920),minFont=Math.ceil(12/s*100)/100,menuHeight=Math.max(266,Math.ceil(minFont*6.6+56));$('viewport').style.width=1080*s+'px';$('viewport').style.height=1920*s+'px';$('game').style.setProperty('--min-font',minFont+'px');$('game').style.setProperty('--price-font',Math.max(12,Math.round(30*s))/s+'px');$('game').style.setProperty('--menu-height',menuHeight+'px');$('game').style.setProperty('--room-scale',(1060-menuHeight)/1060);$('game').dataset.smallScreen=s<.4;$('game').style.zoom=s;$('game').style.transform='none';}
+  function fit(){const s=Math.min(window.innerWidth/1080,window.innerHeight/1920),minFont=Math.ceil(14/s*100)/100,menuHeight=Math.max(266,Math.ceil(minFont*6.6+56));$('viewport').style.width=1080*s+'px';$('viewport').style.height=1920*s+'px';$('game').style.setProperty('--min-font',minFont+'px');$('game').style.setProperty('--price-font',Math.max(12,Math.round(30*s))/s+'px');$('game').style.setProperty('--menu-height',menuHeight+'px');$('game').style.setProperty('--room-scale',(1060-menuHeight)/1060);$('game').dataset.smallScreen=s<.4;$('game').style.zoom=s;$('game').style.transform='none';}
   window.addEventListener('resize',fit);if(window.visualViewport)window.visualViewport.addEventListener('resize',fit);fit();
   function put(id,value){const el=$(id),str=String(value);if(el.textContent!==str)el.textContent=str;}
   function save(){try{localStorage.setItem(KEY,JSON.stringify(game.s));}catch{}}
   function tell(text){put('toast',text);$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),2000);}
-  function setJobsExpanded(value){jobsExpanded=panel==='jobs'&&value;$('game').dataset.jobsExpanded=jobsExpanded;$('jobs-expand').hidden=panel!=='jobs'||jobsExpanded;$('jobs-expand').setAttribute('aria-expanded',jobsExpanded);$('jobs-collapse').hidden=panel!=='jobs';$('jobs-collapse').setAttribute('aria-label',jobsExpanded?'Collapse jobs':'Close jobs');$('drawer-close').hidden=panel==='closed'||panel==='jobs';}
-  function lowerJobs(){if(jobsExpanded)setJobsExpanded(false);else setPanel('closed');}
-  function setPanel(p){if(p!==panel)jobsExpanded=false;panel=p;$('game').dataset.panel=p;$('drawer-body').hidden=p==='closed';$('jobs-view').hidden=p!=='jobs';$('rack-view').hidden=p!=='rack';$('rack-subtitle').hidden=p!=='rack'&&p!=='new-rack';$('buy-rack').hidden=p!=='new-rack';$('install-view').hidden=p!=='install';$('new-rack-view').hidden=p!=='new-rack';$('drawer-toggle').setAttribute('aria-expanded',p!=='closed');setJobsExpanded(jobsExpanded);put('drawer-title',p==='new-rack'||p==='rack'||p==='install'?'SERVER RACK':'JOBS');rackKey='';installKey='';render();}
+  function lowerJobs(){setPanel('closed');}
+  function setPanel(p){panel=p;$('game').dataset.panel=p;$('drawer-body').hidden=p==='closed';$('jobs-view').hidden=p!=='jobs';$('rack-view').hidden=p!=='rack';$('rack-subtitle').hidden=p!=='rack'&&p!=='new-rack';$('buy-rack').hidden=p!=='new-rack';$('install-view').hidden=p!=='install';$('new-rack-view').hidden=p!=='new-rack';$('drawer-toggle').setAttribute('aria-expanded',p!=='closed');$('jobs-collapse').hidden=p!=='jobs';$('drawer-close').hidden=p==='closed'||p==='jobs';put('drawer-title',p==='new-rack'||p==='rack'||p==='install'?'SERVER RACK':'JOBS');rackKey='';installKey='';render();}
   function rack(slot=-1,index=activeRack){activeRack=slot>=0?Math.floor(slot/5):index;selectedSlot=slot;setPanel('rack');}
   function openInstall(slot,job=null){installSlot=slot;installJob=job;setPanel('install');}
-  $('segments').innerHTML='<span></span>'.repeat(10);
   $('new-rack-list').innerHTML=Array.from({length:5},(_,i)=>'<div class="rack-slot empty" role="listitem"><div class="rack-row"><span class="slot-number">0'+(i+1)+'</span><span class="equipment-icon">'+equipmentIcon(null)+'</span><span class="rack-name"><span class="equipment-title">Empty shelf</span></span></div><span class="rack-status vacant">EMPTY</span></div>').join('');
   $('job-list').innerHTML=JOBS.map((j,i)=>`<div class="job" id="job-${i}" data-run="${i}" tabindex="0" role="button" aria-label="Run ${j.name}"><div class="job-actions"><button class="run" data-run="${i}" aria-label="Start ${j.name}">RUN</button><button class="automate" data-automate="${i}" aria-label="Automate ${j.name}"><span>AUTO +</span><b class="auto-price"></b></button></div><div class="job-info"><div class="job-name">${j.name}</div><div class="job-stats"><span class="state"></span><span class="payout"></span></div><div class="job-track" role="progressbar" aria-label="${j.name} progress" aria-valuemin="0" aria-valuemax="100"><span></span></div></div><button class="level" data-level="${i}" aria-label="Level up ${j.name}"><span class="level-label">LEVEL UP</span><b></b></button></div>`).join('');
   function equipmentIcon(type){
@@ -64,7 +62,7 @@
     const running=s.jobs.filter(j=>j.running).length,auto=s.slots.filter(x=>x?.type==='rig'&&game.unlocked(x.job)).length;
     const expanded=game.rackCount()>1;$('game').dataset.hasExpansion=expanded;$('add-rack-target').hidden=expanded;$('new-rack-target').hidden=!expanded;$('rack-tabs').hidden=!expanded||panel!=='rack';document.querySelectorAll('[data-rack]').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.rack)===activeRack));put('drawer-meta',panel==='new-rack'?'02 · 0/5':panel==='rack'||panel==='install'?`0${activeRack+1} · ${s.slots.slice(activeRack*5,activeRack*5+5).filter(Boolean).length} / 5 SLOTS`:`${running} RUNNING • ${auto} AUTO`);put('rack-price',cash(game.rackPrice()));$('buy-rack').disabled=expanded||s.money<game.rackPrice();
     const visibleTaps=now<barFullUntil?10:s.taps;
-    put('tap-value','+'+cash(game.tapValue(now)));put('full-value','+'+cash(game.tapValue(now)*15));put('tap-count',visibleTaps+' / 10');$('segments').setAttribute('aria-valuenow',visibleTaps);[...$('segments').children].forEach((el,i)=>el.classList.toggle('filled',i<visibleTaps));put('speed','×'+game.speed(now).toFixed(2));put('boost-time',s.boosts.length?'• '+Math.max(1,Math.ceil((Math.min(...s.boosts)-now)/1000))+'s':'');
+    put('tap-value','+'+cash(game.tapValue(now)));put('full-value','+'+cash(game.tapValue(now)*15));$('hack').style.setProperty('--hack-fill',visibleTaps/10);$('hack').classList.toggle('empty',visibleTaps===0);$('hack').classList.toggle('charged',visibleTaps===10);put('speed','×'+game.speed(now).toFixed(2));put('hack-status',visibleTaps+' of 10 taps. Job speed '+game.speed(now).toFixed(2)+' times.');
     document.querySelectorAll('[data-buy]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.buy)===String(s.buyMode)));
     s.jobs.forEach((j,i)=>{
       const el=$('job-'+i),locked=!game.unlocked(i);el.classList.toggle('locked',locked);el.setAttribute('aria-disabled',locked);
@@ -75,20 +73,18 @@
     });
     if(panel==='rack')renderRack();if(panel==='install')renderInstall();
   }
-  function hack(){if(!$('settings-overlay').hidden)return;barFullUntil=0;const {amount,bonus}=game.hack();const reward=document.createElement('span');reward.className='reward'+(bonus?' bonus':'');reward.textContent='+'+cash(bonus||amount);reward.style.marginLeft=(Math.random()*60-30)+'px';$('rewards').append(reward);setTimeout(()=>reward.remove(),950);if(bonus){barFullUntil=Date.now()+200;$('hack').classList.add('charged');setTimeout(()=>$('hack').classList.remove('charged'),200);}render();save();}
+  function hack(){if(!$('settings-overlay').hidden)return;barFullUntil=0;const {amount,bonus}=game.hack();const reward=document.createElement('span');reward.className='reward'+(bonus?' bonus':'');reward.textContent='+'+cash(bonus||amount);reward.style.marginLeft=(Math.random()*60-30)+'px';$('rewards').append(reward);setTimeout(()=>reward.remove(),950);if(bonus)barFullUntil=Date.now()+450;render();save();}
   function closeSettings(){$('settings-overlay').hidden=true;$('settings').focus();}
   $('hack').onclick=hack;
   $('buy-rack').onclick=()=>{if(game.buyRack()){rack(-1,1);save();}};
   $('drawer-toggle').onclick=()=>setPanel(panel==='closed'?'jobs':'closed');$('drawer-close').onclick=()=>setPanel('closed');
-  $('jobs-expand').onclick=()=>setJobsExpanded(true);
   $('jobs-collapse').onclick=lowerJobs;
-  // Header drags move one drawer stage; the expanded list keeps native scrolling.
+  // Jobs has one open state; a downward header swipe closes it.
   let swipe=null,suppressClickUntil=0;
   $('dock').addEventListener('pointerdown',e=>{
     if(!e.isPrimary||e.button!==0||panel!=='jobs')return;
-    const header=e.target.closest('.drawer-header');
-    if(!header&&(jobsExpanded||!e.target.closest('#jobs-view')))return;
-    swipe={id:e.pointerId,x:e.clientX,y:e.clientY,expanded:jobsExpanded};
+    if(!e.target.closest('.drawer-header'))return;
+    swipe={id:e.pointerId,x:e.clientX,y:e.clientY};
     e.target.setPointerCapture(e.pointerId);
   });
   $('dock').addEventListener('pointermove',e=>{
@@ -98,11 +94,10 @@
   });
   $('dock').addEventListener('pointerup',e=>{
     if(!swipe||swipe.id!==e.pointerId)return;
-    const dx=e.clientX-swipe.x,dy=e.clientY-swipe.y,wasExpanded=swipe.expanded;swipe=null;
+    const dx=e.clientX-swipe.x,dy=e.clientY-swipe.y;swipe=null;
     if(Math.abs(dy)<35||Math.abs(dy)<Math.abs(dx)*1.2)return;
     suppressClickUntil=Date.now()+400;
-    if(dy<0&&!wasExpanded)setJobsExpanded(true);
-    else if(dy>0)lowerJobs();
+    if(dy>0)lowerJobs();
   });
   $('dock').addEventListener('pointercancel',()=>{swipe=null;});
   $('dock').addEventListener('click',e=>{if(Date.now()<suppressClickUntil){e.preventDefault();e.stopImmediatePropagation();}},true);

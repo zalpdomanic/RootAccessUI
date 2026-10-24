@@ -14,10 +14,10 @@ Depoyu indirin veya klonlayın, ardından `index.html` dosyasını tarayıcıda 
 
 ## Demo
 
-- HACK ile para kazanın, barı doldurup geçici iş hızı bonusu alın.
+- HACK ile para kazanın. Kırık beyaz buton 10 dokunuşta kırmızıyla dolar ve geçici iş hızı bonusu verir; hız çarpanı butonun üzerinde görünür.
 - REP 1'den başlayın; yeni işler REP 2, 3 ve 4'te açılır. REP seviyeleri devam eder.
 - JOBS menüsünden işleri çalıştırın, fiyatı görünen AUTO + düğmesiyle otomasyon satın alın.
-- JOBS açıkken yukarı kaydırıp listeyi büyütün; başlığını aşağı kaydırıp küçültün. Üstteki para paneli ve alttaki HACK kontrolleri sabit kalır. Ok düğmesiyle de görünüm değiştirilebilir.
+- JOBS okuna dokununca liste doğrudan tam açılır. Aşağı ok veya başlığı aşağı kaydırma menüyü kapatır. Üstteki para paneli ve alttaki HACK kontrolleri sabit kalır.
 - İşleri 1×, 10×, 100× veya BUY MAX ile yükseltin.
 - Server rack'e dokunup ekipman kurun. Rack başına 5 raf bulunur; menüde aynı anda 3 raf gösterilir, diğerlerine kaydırarak erişilir.
 - Yerdeki + alanından ikinci bir 5 raflı rack satın alın.
@@ -36,3 +36,5 @@ Depoyu indirin veya klonlayın, ardından `index.html` dosyasını tarayıcıda 
 Node.js kuruluysa `node test-engine.cjs` ile kontroller çalıştırılabilir. Oyun Node.js gerektirmez.
 
 GitHub Pages, `main` dalının kök klasöründen yayınlanır. Bu dala gönderilen güncellemeler otomatik olarak oyun bağlantısına yansır.
+
+Arayüzde başlık/aksiyonlar Pixel Operator Bold, para ve sayaçlar Share Tech Mono kullanır. Comfort ve HACK çarpanı Pixel Operator Mono Bold olarak vurgulanır. HACK yazısı SVG olarak korunur. Font dosyaları ve CC0 lisansı `assets/fonts/pixel-operator/` klasöründedir.
