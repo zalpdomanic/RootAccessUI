@@ -52,7 +52,7 @@
 
 
 /* Keep the price inside the same one-tap automation action. */
-.job-actions .automate{display:flex;flex-direction:column;justify-content:center;gap:3px;font-size:max(27px,var(--min-font,12px))}.auto-price{display:block;font:max(23px,var(--min-font,12px))/1 var(--mono)}
+.job-actions .automate{display:flex;flex-direction:column;justify-content:center;gap:3px;font-size:max(27px,var(--min-font,12px))}.auto-price{display:block;font:inherit}
 .rep>div:first-child{justify-content:space-between;gap:16px}.rep #rep-level{white-space:nowrap;font-size:max(32px,var(--min-font,12px))}.rep #rep{font-size:max(32px,var(--min-font,12px))}
 #game[data-panel=install] .drawer-body{height:430px}#game[data-panel=install] #install-list{height:354px}#game[data-panel=install] .scene{height:630px}#game[data-panel=install] .scene-inner{transform:scale(.594)}
 
