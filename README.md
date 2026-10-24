@@ -23,7 +23,7 @@ Depoyu indirin veya klonlayın, ardından `index.html` dosyasını tarayıcıda 
 - JOBS okuna dokununca liste doğrudan tam açılır. Aşağı ok veya başlığı aşağı kaydırma menüyü kapatır. Üstteki para paneli ve alttaki HACK kontrolleri sabit kalır.
 - İşleri 1×, 10×, 100× veya BUY MAX ile yükseltin.
 - Server rack'e dokunup ekipman kurun. Rack, ekipman kurulum ve yerdeki + ile açılan rack satın alma menüleri JOBS gibi HUD ile HACK arasındaki alanı tamamen kaplar. Rack başına 5 raf bulunur; uzun içerikler menü içinde kaydırılır.
-- Yerdeki + alanından ikinci bir 5 raflı rack satın alın.
+- Yerdeki +, Expand Setup menüsünü açar: ikinci bir 5 raflı rack satın alın, bir otomasyon işi seçin veya boş rafa fiber modem kurun. Fiyatlar kartlarda, satın alma düğmelerinden ayrı gösterilir.
 
 İlerleme tarayıcının localStorage alanında saklanır. Settings → Reset Demo ile sıfırlanır. Demodaki bütün tutarlar oyun içi sanal paradır.
 

@@ -3,7 +3,7 @@
   const {Game,JOBS}=RootAccess;
   const $=id=>document.getElementById(id),KEY='root-access-mobile-v2';
   let game,raw,savedAt;try{raw=JSON.parse(localStorage.getItem(KEY));savedAt=raw?.last;game=new Game(raw);game.resumeOffline(savedAt);}catch{game=new Game();}
-  let panel='closed',barFullUntil=0,activeRack=0,selectedSlot=-1,installSlot=2,installJob=null,lastSaved=0,rackKey='',installKey='',toastTimer;
+  let panel='closed',barFullUntil=0,activeRack=0,selectedSlot=-1,installSlot=2,installJob=null,installOrigin='rack',installType=null,lastSaved=0,rackKey='',installKey='',toastTimer;
   const cash=n=>'$'+(n>=1e6?(n/1e6).toFixed(2).replace(/0$/,'')+'M':n>=100000?(n/1000).toFixed(1)+'K':n>=1000?Math.floor(n).toLocaleString('en-US'):n.toFixed(n<100?1:0));
   const fullCash=n=>'$'+n.toLocaleString('en-US',{maximumFractionDigits:2});
   const afkCash=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -48,10 +48,10 @@
   $('afk-double').onclick=()=>{if(!game.afkStatus().ready||adRemaining)return;adRemaining=5000;adLast=Date.now();$('afk-actions').hidden=true;$('afk-ad').hidden=false;put('afk-ad-countdown','5s');$('afk-ad-cancel').focus();};
   $('afk-ad-cancel').onclick=()=>{cancelAd();$('afk-double').focus();};
   function lowerJobs(){setPanel('closed');}
-  function setPanel(p){panel=p;$('game').dataset.panel=p;$('drawer-body').hidden=p==='closed';$('jobs-view').hidden=p!=='jobs';$('rack-view').hidden=p!=='rack';$('rack-subtitle').hidden=p!=='rack'&&p!=='new-rack';$('buy-rack').hidden=p!=='new-rack';$('install-view').hidden=p!=='install';$('new-rack-view').hidden=p!=='new-rack';$('drawer-toggle').setAttribute('aria-expanded',p!=='closed');$('jobs-collapse').hidden=p!=='jobs';$('drawer-close').hidden=p==='closed'||p==='jobs';put('drawer-title',p==='new-rack'||p==='rack'||p==='install'?'SERVER RACK':'JOBS');rackKey='';installKey='';render();}
+  function setPanel(p){panel=p;$('game').dataset.panel=p;$('drawer-body').hidden=p==='closed';$('jobs-view').hidden=p!=='jobs';$('rack-view').hidden=p!=='rack';$('rack-subtitle').hidden=p!=='rack'&&p!=='new-rack';$('install-view').hidden=p!=='install';$('new-rack-view').hidden=p!=='new-rack';$('drawer-toggle').setAttribute('aria-expanded',p!=='closed');$('jobs-collapse').hidden=p!=='jobs';$('drawer-close').hidden=p==='closed'||p==='jobs';put('drawer-title',p==='new-rack'?'EXPAND SETUP':p==='rack'||p==='install'?'SERVER RACK':'JOBS');rackKey='';installKey='';render();}
   function rack(slot=-1,index=activeRack){activeRack=slot>=0?Math.floor(slot/5):index;selectedSlot=slot;setPanel('rack');}
-  function openInstall(slot,job=null){installSlot=slot;installJob=job;setPanel('install');}
-  $('new-rack-list').innerHTML=Array.from({length:5},(_,i)=>'<div class="rack-slot empty" role="listitem"><div class="rack-row"><span class="slot-number">0'+(i+1)+'</span><span class="equipment-icon">'+equipmentIcon(null)+'</span><span class="rack-name"><span class="equipment-title">Empty shelf</span></span></div><span class="rack-status vacant">EMPTY</span></div>').join('');
+  function openInstall(slot,job=null,origin='rack',type=null){installSlot=slot;installJob=job;installOrigin=origin;installType=type;activeRack=Math.floor(slot/5);$('install-back').setAttribute('aria-label',origin==='new-rack'?'Back to expansion options':'Back to rack');setPanel('install');}
+
   $('job-list').innerHTML=JOBS.map((j,i)=>`<div class="job" id="job-${i}" data-run="${i}" tabindex="0" role="button" aria-label="Run ${j.name}"><div class="job-actions"><button class="run" data-run="${i}" aria-label="Start ${j.name}">RUN</button><button class="automate" data-automate="${i}" aria-label="Automate ${j.name}"><span>AUTO +</span><b class="auto-price"></b></button></div><div class="job-info"><div class="job-name">${j.name}</div><div class="job-stats"><span class="state"></span><span class="payout"></span></div><div class="job-track" role="progressbar" aria-label="${j.name} progress" aria-valuemin="0" aria-valuemax="100"><span></span></div></div><button class="level" data-level="${i}" aria-label="Level up ${j.name}"><span class="level-label">LEVEL UP</span><b></b></button></div>`).join('');
   $('job-rings').innerHTML=JOBS.map((j,i)=>`<span class="job-ring" id="job-ring-${i}" role="img"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="ring-track" cx="50" cy="50" r="44"/><circle class="ring-fill" cx="50" cy="50" r="44" pathLength="100"/></svg><span>${j.code.split('_')[0]}</span></span>`).join('');
   function equipmentIcon(type){
@@ -85,13 +85,27 @@
     $('rack-list').scrollTop=previousScroll;
     if(selectedSlot>=0)$('rack-list').children[selectedSlot%5]?.scrollIntoView({block:'nearest'});
   }
+  $('expansion-rig-icon').innerHTML=equipmentIcon('rig');
+  $('expansion-modem-icon').innerHTML=equipmentIcon('modem');
+  $('expansion-rack-icon').innerHTML='<svg viewBox="0 0 128 128"><path d="M29 12h70v104H29Z" fill="#102330" stroke="#74808b" stroke-width="3"/><path d="M38 24h52v18H38Zm0 28h52v18H38Zm0 28h52v18H38Z" fill="#1e3542" stroke="#56707e" stroke-width="2"/><path d="M44 33h8m-8 28h8m-8 28h8" stroke="#e8c77a" stroke-width="3"/><path d="M25 116h78" stroke="#74808b" stroke-width="4"/></svg>';
+  function renderExpansion(){
+    const free=game.s.slots.findIndex(slot=>!slot),available=JOBS.map((_,i)=>i).filter(i=>!game.auto(i));
+    put('expansion-rig-price',available.length?cash(Math.min(...available.map(i=>game.automationCost(i)))):'ALL INSTALLED');
+    put('expansion-rig-label',available.length?'STARTING AT':'AUTOMATION');
+    $('choose-rig').disabled=free<0||!available.length;
+    $('buy-modem').disabled=free<0||!!game.modem()||game.s.money<15000;
+    put('buy-modem',game.modem()?'INSTALLED':free<0?'RACK FULL':'INSTALL ↗');
+    put('expansion-note',free<0?'Your rack is full. Add a new rack to install more equipment.':'Rigs and modems use one empty shelf in your current setup.');
+  }
+  $('choose-rig').onclick=()=>{const slot=game.s.slots.findIndex(s=>!s);if(slot>=0)openInstall(slot,null,'new-rack','rig');};
+  $('buy-modem').onclick=()=>{const slot=game.s.slots.findIndex(s=>!s);if(slot>=0&&game.install(slot,'modem')){rack(slot);save();}};
   function renderInstall(){
     const options=JOBS.map((j,i)=>({type:'rig',job:i,name:j.name+' rig',cost:game.automationCost(i),blocked:game.auto(i)?'INSTALLED':!game.unlocked(i)?'REP LV '+(i+1):null}));
     if(installJob===null)options.push({type:'modem',job:0,name:'Fiber modem',cost:15000,blocked:game.modem()?'INSTALLED':null});
-    const shown=installJob===null?options:options.filter(x=>x.type==='rig'&&x.job===installJob);
+    const shown=(installJob===null?options:options.filter(x=>x.type==='rig'&&x.job===installJob)).filter(x=>!installType||x.type===installType);
     const key=JSON.stringify([installSlot,installJob,shown.map(x=>[x.blocked,game.s.money>=x.cost])]);if(key===installKey)return;installKey=key;
     put('install-title','RACK 0'+(Math.floor(installSlot/5)+1)+' / SHELF 0'+(installSlot%5+1));
-    $('install-list').innerHTML=shown.map(x=>`<div class="install-item"><span>${x.name}<small>${x.type==='modem'?'+20% JOB SPEED':'AUTO REPEAT'}</small></span><button class="action" data-install="${x.type}" data-job="${x.job}" ${x.blocked||game.s.money<x.cost?'disabled':''}>${x.blocked||'INSTALL'}${x.blocked?'':`<b>${cash(x.cost)}</b>`}</button></div>`).join('');
+    $('install-list').innerHTML=shown.map(x=>`<div class="install-item"><span>${x.name}<small>${x.type==='modem'?'+20% JOB SPEED':'AUTO REPEAT'}</small>${x.blocked==='INSTALLED'?'':`<strong class="install-price">${cash(x.cost)}</strong>`}</span><button class="action" data-install="${x.type}" data-job="${x.job}" aria-label="${x.blocked||('Install '+x.name+' for '+fullCash(x.cost))}" ${x.blocked||game.s.money<x.cost?'disabled':''}>${x.blocked||'INSTALL'}</button></div>`).join('');
   }
   function render(now=Date.now()){
     const s=game.s;put('money',cash(s.money));$('money').title=fullCash(s.money);put('income','+'+cash(game.rate(now))+'/s');
@@ -99,7 +113,7 @@
     const running=s.jobs.filter(j=>j.running).length,auto=s.slots.filter(x=>x?.type==='rig'&&game.unlocked(x.job)).length;
     const jobsHeader=panel==='closed'||panel==='jobs';$('drawer-meta').hidden=jobsHeader;$('job-rings').hidden=!jobsHeader;
     $('upgrade-ready').hidden=!jobsHeader||!s.jobs.some((_,i)=>game.quote(i,1).affordable);
-    const expanded=game.rackCount()>1;$('game').dataset.hasExpansion=expanded;$('add-rack-target').hidden=expanded;$('new-rack-target').hidden=!expanded;$('rack-tabs').hidden=!expanded||panel!=='rack';document.querySelectorAll('[data-rack]').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.rack)===activeRack));put('drawer-meta',panel==='new-rack'?'02 · 0/5':panel==='rack'||panel==='install'?`0${activeRack+1} · ${s.slots.slice(activeRack*5,activeRack*5+5).filter(Boolean).length} / 5 SLOTS`:`${running} RUNNING • ${auto} AUTO`);put('rack-price',cash(game.rackPrice()));$('buy-rack').disabled=expanded||s.money<game.rackPrice();
+    const expanded=game.rackCount()>1;$('game').dataset.hasExpansion=expanded;$('add-rack-target').hidden=expanded;$('new-rack-target').hidden=!expanded;$('rack-tabs').hidden=!expanded||panel!=='rack';document.querySelectorAll('[data-rack]').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.rack)===activeRack));put('drawer-meta',panel==='new-rack'?'SPACE & EQUIPMENT':panel==='rack'||panel==='install'?`0${activeRack+1} · ${s.slots.slice(activeRack*5,activeRack*5+5).filter(Boolean).length} / 5 SLOTS`:`${running} RUNNING • ${auto} AUTO`);put('rack-price',cash(game.rackPrice()));$('buy-rack').disabled=expanded||s.money<game.rackPrice();
     const visibleTaps=now<barFullUntil?10:s.taps;
     put('tap-value','+'+cash(game.tapValue(now)));put('full-value','+'+cash(game.tapValue(now)*15));$('hack').style.setProperty('--hack-fill',visibleTaps/10);$('hack').classList.toggle('empty',visibleTaps===0);$('hack').classList.toggle('charged',visibleTaps===10);put('speed','×'+game.speed(now).toFixed(2));put('hack-status',visibleTaps+' of 10 taps. Job speed '+game.speed(now).toFixed(2)+' times.');
     document.querySelectorAll('[data-buy]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.buy)===String(s.buyMode)));
@@ -113,7 +127,7 @@
       el.querySelector('.payout').textContent=cash(game.payout(i,now))+' / run';const progress=100*j.progress/JOBS[i].seconds;el.querySelector('.job-track>span').style.width=progress+'%';el.querySelector('.job-track').setAttribute('aria-valuenow',Math.floor(progress));
       const level=el.querySelector('.level'),q=game.quote(i,s.buyMode);level.disabled=!q.affordable;level.querySelector('.level-label').textContent=j.level>=25?'MAX LEVEL':'LEVEL UP'+(q.count?' +'+q.count:'');level.querySelector('b').textContent=j.level>=25?'25 / 25':cash(q.cost||game.cost(i));level.title=q.count+' levels · '+fullCash(q.cost)+' · Level cap 25';const autoBtn=el.querySelector('.automate');autoBtn.hidden=locked||game.auto(i);autoBtn.querySelector('.auto-price').textContent=cash(game.automationCost(i));const full=s.slots.every(Boolean);autoBtn.disabled=locked||full||s.money<game.automationCost(i);autoBtn.title=full?'RACK FULL · '+s.slots.length+' / '+s.slots.length:'AUTO + · '+fullCash(game.automationCost(i));autoBtn.setAttribute('aria-label','Automate '+JOBS[i].name+' for '+fullCash(game.automationCost(i))+(full?' · Rack full':''));
     });
-    if(panel==='rack')renderRack();if(panel==='install')renderInstall();renderAfk(now);
+    if(panel==='rack')renderRack();if(panel==='install')renderInstall();if(panel==='new-rack')renderExpansion();renderAfk(now);
   }
   function hack(){if(!$('settings-overlay').hidden||!$('offline-overlay').hidden)return;barFullUntil=0;const {amount,bonus}=game.hack();const reward=document.createElement('span');reward.className='reward'+(bonus?' bonus':'');reward.textContent='+'+cash(bonus||amount);reward.style.marginLeft=(Math.random()*60-30)+'px';$('rewards').append(reward);setTimeout(()=>reward.remove(),950);if(bonus)barFullUntil=Date.now()+450;render();save();}
   function closeSettings(){$('settings-overlay').hidden=true;$('settings').focus();}
@@ -143,7 +157,7 @@
   });
   $('dock').addEventListener('pointercancel',()=>{swipe=null;});
   $('dock').addEventListener('click',e=>{if(Date.now()<suppressClickUntil){e.preventDefault();e.stopImmediatePropagation();}},true);
-  $('install-back').onclick=()=>rack();
+  $('install-back').onclick=()=>installOrigin==='new-rack'?setPanel('new-rack'):rack();
   $('settings').onclick=()=>{$('settings-overlay').hidden=false;$('reset-confirm').hidden=true;$('resume').focus();};$('settings-close').onclick=closeSettings;$('resume').onclick=closeSettings;
   $('reset').onclick=()=>{$('reset-confirm').hidden=false;$('reset-yes').focus();};$('reset-no').onclick=()=>$('reset-confirm').hidden=true;
   $('reset-yes').onclick=()=>{game=new Game();barFullUntil=0;activeRack=0;selectedSlot=-1;rackKey='';installKey='';setPanel('closed');closeSettings();save();};
