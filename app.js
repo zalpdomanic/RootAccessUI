@@ -45,7 +45,22 @@
   function claimAfk(multiplier){const reward=game.collectAfk(multiplier);if(!reward)return;save();collectMessage='Collected '+fullCash(reward.amount)+(multiplier===2?' · 2× reward':'');collectMessageUntil=Date.now()+5000;render();$('afk-close').focus();}
   $('afk-open').onclick=showOffline;$('afk-close').onclick=closeAfk;
   $('offline-collect').onclick=()=>claimAfk(1);
-  $('afk-double').onclick=()=>{if(!game.afkStatus().ready||adRemaining)return;adRemaining=5000;adLast=Date.now();$('afk-actions').hidden=true;$('afk-ad').hidden=false;put('afk-ad-countdown','5s');$('afk-ad-cancel').focus();};
+  async function prepareDemoAd(signal) {
+    const response=await fetch('assets/demo-ad.json?v=20261025-loading-ui',{signal,cache:'no-store'});
+    if(!response.ok)throw new Error('Ad unavailable');
+    const ad=await response.json();
+    if(ad.kind!=='root-access-demo-ad'||ad.durationSeconds!==5)throw new Error('Invalid demo ad');
+    return ad;
+  }
+  $('afk-double').onclick=()=>{
+    if(!game.afkStatus().ready||adRemaining||RootLoading.visible)return;
+    closeAfk();
+    RootLoading.start({kind:'ad',work:prepareDemoAd,onBack:closeAfk,onComplete:ad=>{
+      if(!game.afkStatus().ready)return;
+      showOffline();
+      adRemaining=ad.durationSeconds*1000;adLast=Date.now();$('afk-actions').hidden=true;$('afk-ad').hidden=false;put('afk-ad-countdown','5s');$('afk-ad-cancel').focus();
+    }});
+  };
   $('afk-ad-cancel').onclick=()=>{cancelAd();$('afk-double').focus();};
   function lowerJobs(){setPanel('closed');}
   function setPanel(p){panel=p;$('game').dataset.panel=p;$('drawer-body').hidden=p==='closed';$('jobs-view').hidden=p!=='jobs';$('rack-view').hidden=p!=='rack';$('rack-subtitle').hidden=p!=='rack'&&p!=='new-rack';$('install-view').hidden=p!=='install';$('new-rack-view').hidden=p!=='new-rack';$('drawer-toggle').setAttribute('aria-expanded',p!=='closed');$('jobs-collapse').hidden=p!=='jobs';$('drawer-close').hidden=p==='closed'||p==='jobs';put('drawer-title',p==='new-rack'?'EXPAND SETUP':p==='rack'||p==='install'?'SERVER RACK':'JOBS');rackKey='';installKey='';render();}
@@ -53,7 +68,16 @@
   function openInstall(slot,job=null,origin='rack',type=null){installSlot=slot;installJob=job;installOrigin=origin;installType=type;activeRack=Math.floor(slot/5);$('install-back').setAttribute('aria-label',origin==='new-rack'?'Back to expansion options':'Back to rack');setPanel('install');}
 
   $('job-list').innerHTML=JOBS.map((j,i)=>`<article class="job menu-card" id="job-${i}" data-run="${i}" tabindex="0" role="button" aria-label="Run ${j.name}"><div class="job-card-head"><span class="job-code-icon" aria-hidden="true">${j.code.split('_')[0]}</span><div class="job-info"><span class="menu-eyebrow">${j.code.replace('_',' / ')}</span><div class="job-name">${j.name}</div><div class="job-stats"><span class="state"></span></div></div></div><div class="job-track" role="progressbar" aria-label="${j.name} progress" aria-valuemin="0" aria-valuemax="100"><span></span></div><div class="menu-offer"><span class="menu-price"><small>PER RUN</small><b class="payout"></b></span><button class="run menu-action" data-run="${i}" aria-label="Start ${j.name}">RUN</button></div><div class="menu-offer automation-offer"><span class="menu-price"><small>AUTOMATION</small><b class="auto-price"></b></span><button class="automate menu-action" data-automate="${i}" aria-label="Automate ${j.name}">AUTO +</button></div><div class="menu-offer"><span class="menu-price"><small>UPGRADE COST</small><b class="level-price"></b></span><button class="level menu-action" data-level="${i}" aria-label="Level up ${j.name}"><span class="level-label">LEVEL UP</span></button></div></article>`).join('');
-  $('job-rings').innerHTML=JOBS.map((j,i)=>`<span class="job-ring" id="job-ring-${i}" role="img"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="ring-track" cx="50" cy="50" r="44"/><circle class="ring-fill" cx="50" cy="50" r="44" pathLength="100"/></svg><span>${j.code.split('_')[0]}</span></span>`).join('');
+  $('job-rings').innerHTML=JOBS.map((j,i)=>`<button class="job-ring" id="job-ring-${i}" data-run="${i}" aria-label="Run ${j.name}"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="ring-track" cx="50" cy="50" r="44"/><circle class="ring-fill" cx="50" cy="50" r="44" pathLength="100"/></svg><span>${j.code.split('_')[0]}</span></button>`).join('');
+  let ringPointer=null,ringDragUntil=0;
+  $('job-rings').addEventListener('pointerdown',e=>{ringPointer={x:e.clientX,y:e.clientY};});
+  $('job-rings').addEventListener('pointermove',e=>{if(ringPointer&&Math.hypot(e.clientX-ringPointer.x,e.clientY-ringPointer.y)>10)ringDragUntil=Date.now()+350;});
+  $('job-rings').addEventListener('pointercancel',()=>{ringPointer=null;ringDragUntil=Date.now()+350;});
+  $('job-rings').addEventListener('pointerup',()=>{ringPointer=null;});
+  $('job-rings').addEventListener('click',e=>{
+    if(Date.now()<ringDragUntil){e.preventDefault();e.stopImmediatePropagation();return;}
+    const ring=e.target.closest('.job-ring');if(ring&&!ring.disabled){ring.classList.add('pressed');setTimeout(()=>ring.classList.remove('pressed'),130);}
+  });
   function equipmentIcon(type){
     if(!type)return '<span class="empty-equipment">+</span>';
     const common='<defs><linearGradient id="metal-'+type+'" x2="1" y2="1"><stop stop-color="#3b5261"/><stop offset=".45" stop-color="#14232f"/><stop offset="1" stop-color="#050b12"/></linearGradient></defs>';
@@ -111,9 +135,9 @@
   }
   function render(now=Date.now()){
     const s=game.s;put('money',cash(s.money));$('money').title=fullCash(s.money);put('income','+'+cash(game.rate(now))+'/s');
-    const reputation=game.repStatus();put('rep-level','REP LV '+reputation.level);put('rep',reputation.progress+' / '+reputation.required);$('rep-fill').style.width=(reputation.progress/reputation.required*100)+'%';$('rep-fill').parentElement.setAttribute('aria-valuenow',reputation.progress);$('rep-fill').parentElement.setAttribute('aria-valuemax',reputation.required);$('rep-fill').parentElement.setAttribute('aria-label','Reputation level '+reputation.level);put('comfort',game.comfort(now));
+    const reputation=game.repStatus();put('rep-level','REP LV '+reputation.level);$('rep-fill').style.width=(reputation.progress/reputation.required*100)+'%';$('rep-fill').parentElement.setAttribute('aria-valuenow',reputation.progress);$('rep-fill').parentElement.setAttribute('aria-valuemax',reputation.required);$('rep-fill').parentElement.setAttribute('aria-label','Reputation level '+reputation.level);put('comfort',game.comfort(now));
     const running=s.jobs.filter(j=>j.running).length,auto=s.slots.filter(x=>x?.type==='rig'&&game.unlocked(x.job)).length;
-    const jobsHeader=panel==='closed'||panel==='jobs';$('drawer-meta').hidden=jobsHeader;$('job-rings').hidden=!jobsHeader;
+    const jobsHeader=panel==='closed'||panel==='jobs';$('drawer-meta').hidden=jobsHeader;$('job-rings').hidden=!jobsHeader;$('drawer-open-arrow').hidden=panel!=='closed';
     $('upgrade-ready').hidden=!jobsHeader||!s.jobs.some((_,i)=>game.quote(i,1).affordable);
     const expanded=game.rackCount()>1;$('game').dataset.hasExpansion=expanded;$('add-rack-target').hidden=expanded;$('new-rack-target').hidden=!expanded;$('rack-tabs').hidden=!expanded||panel!=='rack';document.querySelectorAll('[data-rack]').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.rack)===activeRack));put('drawer-meta',panel==='new-rack'?'SPACE & EQUIPMENT':panel==='rack'||panel==='install'?`0${activeRack+1} · ${s.slots.slice(activeRack*5,activeRack*5+5).filter(Boolean).length} / 5 SLOTS`:`${running} RUNNING • ${auto} AUTO`);put('rack-price',cash(game.rackPrice()));$('buy-rack').disabled=expanded||s.money<game.rackPrice();
     const visibleTaps=now<barFullUntil?10:s.taps;
@@ -123,7 +147,7 @@
       const el=$('job-'+i),locked=!game.unlocked(i);el.classList.toggle('locked',locked);el.setAttribute('aria-disabled',locked);
       const ring=$('job-ring-'+i),active=!locked&&j.running,ringProgress=Math.min(100,100*j.progress/JOBS[i].seconds);
       ring.classList.toggle('running',active);ring.classList.toggle('locked',locked);ring.querySelector('.ring-fill').style.strokeDashoffset=100-(active?ringProgress:0);ring.querySelector('span').textContent=locked?'?':JOBS[i].code.split('_')[0];
-      const ringLabel=JOBS[i].name+': '+(locked?'locked':active?Math.floor(ringProgress)+'% complete':'ready');ring.setAttribute('aria-label',ringLabel);ring.title=ringLabel;
+      const ringLabel=JOBS[i].name+': '+(locked?'locked':active?Math.floor(ringProgress)+'% complete':'ready');ring.setAttribute('aria-label',ringLabel);ring.title=ringLabel;ring.disabled=locked||active||game.auto(i);
       const run=el.querySelector('.run');run.textContent=locked?'LOCKED':game.auto(i)?'AUTO':j.running?'RUNNING':'RUN';run.classList.toggle('auto',game.auto(i));run.disabled=locked||j.running;
       el.querySelector('.state').textContent=locked?'REP LV '+(i+1):`LV ${j.level} · ${j.running?Math.ceil((JOBS[i].seconds-j.progress)/game.speed(now))+'s':'Ready'}`;
       el.querySelector('.payout').textContent=cash(game.payout(i,now));const progress=100*j.progress/JOBS[i].seconds;el.querySelector('.job-track>span').style.width=progress+'%';el.querySelector('.job-track').setAttribute('aria-valuenow',Math.floor(progress));
@@ -131,17 +155,17 @@
     });
     if(panel==='rack')renderRack();if(panel==='install')renderInstall();if(panel==='new-rack')renderExpansion();renderAfk(now);
   }
-  function hack(){if(!$('settings-overlay').hidden||!$('offline-overlay').hidden)return;barFullUntil=0;const {amount,bonus}=game.hack();const reward=document.createElement('span');reward.className='reward'+(bonus?' bonus':'');reward.textContent='+'+cash(bonus||amount);reward.style.marginLeft=(Math.random()*60-30)+'px';$('rewards').append(reward);setTimeout(()=>reward.remove(),950);if(bonus)barFullUntil=Date.now()+450;render();save();}
+  function hack(){if(RootLoading.visible)return;if(!$('settings-overlay').hidden||!$('offline-overlay').hidden)return;barFullUntil=0;const {amount,bonus}=game.hack();const reward=document.createElement('span');reward.className='reward'+(bonus?' bonus':'');reward.textContent='+'+cash(bonus||amount);reward.style.marginLeft=(Math.random()*60-30)+'px';$('rewards').append(reward);setTimeout(()=>reward.remove(),950);if(bonus)barFullUntil=Date.now()+450;render();save();}
   function closeSettings(){$('settings-overlay').hidden=true;$('settings').focus();}
   $('hack').onclick=hack;
   $('buy-rack').onclick=()=>{if(game.buyRack()){rack(-1,1);save();}};
   $('drawer-toggle').onclick=()=>setPanel(panel==='closed'?'jobs':'closed');$('drawer-close').onclick=()=>setPanel('closed');
-  $('jobs-collapse').onclick=lowerJobs;
+  $('jobs-collapse').onclick=lowerJobs;$('drawer-open-arrow').onclick=()=>setPanel('jobs');$('upgrade-ready').onclick=()=>setPanel('jobs');
   // Jobs has one open state; a downward header swipe closes it.
   let swipe=null,suppressClickUntil=0;
   $('dock').addEventListener('pointerdown',e=>{
     if(!e.isPrimary||e.button!==0||panel!=='jobs')return;
-    if(!e.target.closest('.drawer-header'))return;
+    if(!e.target.closest('.drawer-header')||e.target.closest('.job-rings'))return;
     swipe={id:e.pointerId,x:e.clientX,y:e.clientY};
     e.target.setPointerCapture(e.pointerId);
   });
@@ -190,5 +214,14 @@
   document.addEventListener('visibilitychange',()=>{if(document.hidden){game.tick();save();}else{game.resumeOffline(game.s.last);adLast=Date.now();save();render();}});window.addEventListener('pagehide',save);
   window.addEventListener('pageshow',e=>{if(e.persisted&&!document.hidden){game.resumeOffline(game.s.last);adLast=Date.now();save();render();}});
   setInterval(()=>{if(document.hidden)return;const now=Date.now();game.tick(now);render(now);if(now-lastSaved>2000){save();lastSaved=now;}},100);
-  render();save();
+  async function preloadRoom(signal,report){
+    const tasks=[...document.querySelectorAll('.room-art,.loading-room')].map(img=>()=>{if(img.complete&&!img.naturalWidth)img.src=img.getAttribute('src');return img.decode();});
+    tasks.push(()=>document.fonts.load('400 40px "Pixel Operator"'),()=>document.fonts.load('700 40px "Pixel Operator"'),()=>document.fonts.load('400 40px "Share Tech Mono"'),()=>document.fonts.load('700 40px "Pixel Operator Mono"'));
+    let done=0;report(0);
+    await Promise.all(tasks.map(async work=>{await work();if(signal.aborted)return;report(++done/tasks.length);}));
+  }
+  function startRoom(preview=false){RootLoading.start({kind:'startup',work:preloadRoom,timeoutMs:60000,minVisibleMs:preview?2400:650,onBack:preview?()=>{}:undefined});}
+  $('preview-loading').onclick=()=>{closeSettings();startRoom(true);};
+  $('preview-ad-error').onclick=()=>{closeSettings();let first=true;RootLoading.start({kind:'ad',work:signal=>{if(first){first=false;return Promise.reject(new Error('Preview unavailable state'));}return prepareDemoAd(signal);},onBack:()=>{},onComplete:()=>{}});};
+  render();save();startRoom();
 })();
