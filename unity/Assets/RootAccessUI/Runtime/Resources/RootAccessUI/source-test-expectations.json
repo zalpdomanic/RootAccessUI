@@ -1,0 +1,342 @@
+{
+  "cases": [
+    {
+      "name": "ten-taps",
+      "money": 2480026.249999998,
+      "rep": 0,
+      "taps": 0,
+      "totalTaps": 10,
+      "completed": 0,
+      "comfort": 5,
+      "slotCount": 5,
+      "boostCount": 1,
+      "levels": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "progress": [
+        3.5000000000000004,
+        0,
+        0,
+        0
+      ],
+      "afkAmount": 0,
+      "afkElapsed": 0,
+      "afkJobs": 0
+    },
+    {
+      "name": "twenty-taps",
+      "money": 2480055.649999996,
+      "rep": 2,
+      "taps": 0,
+      "totalTaps": 20,
+      "completed": 1,
+      "comfort": 5,
+      "slotCount": 5,
+      "boostCount": 2,
+      "levels": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "progress": [
+        0.999999999999998,
+        0,
+        0,
+        0
+      ],
+      "afkAmount": 0,
+      "afkElapsed": 0,
+      "afkJobs": 0
+    },
+    {
+      "name": "boost-expiry",
+      "money": 2480035.6999999983,
+      "rep": 6,
+      "taps": 0,
+      "totalTaps": 10,
+      "completed": 3,
+      "comfort": 5,
+      "slotCount": 5,
+      "boostCount": 0,
+      "levels": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "progress": [
+        0.501,
+        0,
+        0,
+        0
+      ],
+      "afkAmount": 0,
+      "afkElapsed": 0,
+      "afkJobs": 0
+    },
+    {
+      "name": "locked-job",
+      "money": 2480000,
+      "rep": 0,
+      "taps": 0,
+      "totalTaps": 0,
+      "completed": 0,
+      "comfort": 5,
+      "slotCount": 5,
+      "boostCount": 0,
+      "levels": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "progress": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "afkAmount": 0,
+      "afkElapsed": 0,
+      "afkJobs": 0
+    },
+    {
+      "name": "buy-ten",
+      "money": 2479310.155972538,
+      "rep": 0,
+      "taps": 0,
+      "totalTaps": 0,
+      "completed": 0,
+      "comfort": 5,
+      "slotCount": 5,
+      "boostCount": 0,
+      "levels": [
+        11,
+        1,
+        1,
+        1
+      ],
+      "progress": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "afkAmount": 0,
+      "afkElapsed": 0,
+      "afkJobs": 0
+    },
+    {
+      "name": "buy-max",
+      "money": 2309753.1327978605,
+      "rep": 0,
+      "taps": 0,
+      "totalTaps": 0,
+      "completed": 0,
+      "comfort": 5,
+      "slotCount": 5,
+      "boostCount": 0,
+      "levels": [
+        25,
+        1,
+        1,
+        1
+      ],
+      "progress": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "afkAmount": 0,
+      "afkElapsed": 0,
+      "afkJobs": 0
+    },
+    {
+      "name": "no-funds",
+      "money": 0,
+      "rep": 0,
+      "taps": 0,
+      "totalTaps": 0,
+      "completed": 0,
+      "comfort": 5,
+      "slotCount": 5,
+      "boostCount": 0,
+      "levels": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "progress": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "afkAmount": 0,
+      "afkElapsed": 0,
+      "afkJobs": 0
+    },
+    {
+      "name": "second-rack",
+      "money": 2455000,
+      "rep": 0,
+      "taps": 0,
+      "totalTaps": 0,
+      "completed": 0,
+      "comfort": 5,
+      "slotCount": 10,
+      "boostCount": 0,
+      "levels": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "progress": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "afkAmount": 0,
+      "afkElapsed": 0,
+      "afkJobs": 0
+    },
+    {
+      "name": "modem",
+      "money": 965000,
+      "rep": 0,
+      "taps": 0,
+      "totalTaps": 0,
+      "completed": 0,
+      "comfort": 7,
+      "slotCount": 5,
+      "boostCount": 0,
+      "levels": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "progress": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "afkAmount": 0,
+      "afkElapsed": 0,
+      "afkJobs": 0
+    },
+    {
+      "name": "offline-minute",
+      "money": 2480000,
+      "rep": 20,
+      "taps": 0,
+      "totalTaps": 0,
+      "completed": 10,
+      "comfort": 5,
+      "slotCount": 5,
+      "boostCount": 0,
+      "levels": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "progress": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "afkAmount": 31.500000000000004,
+      "afkElapsed": 60000,
+      "afkJobs": 10
+    },
+    {
+      "name": "offline-cap",
+      "money": 2480000,
+      "rep": 9600,
+      "taps": 0,
+      "totalTaps": 0,
+      "completed": 4800,
+      "comfort": 5,
+      "slotCount": 5,
+      "boostCount": 0,
+      "levels": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "progress": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "afkAmount": 15120.000000000002,
+      "afkElapsed": 28800000,
+      "afkJobs": 4800
+    },
+    {
+      "name": "collect",
+      "money": 2480031.5,
+      "rep": 20,
+      "taps": 0,
+      "totalTaps": 0,
+      "completed": 10,
+      "comfort": 5,
+      "slotCount": 5,
+      "boostCount": 0,
+      "levels": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "progress": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "afkAmount": 0,
+      "afkElapsed": 0,
+      "afkJobs": 0
+    },
+    {
+      "name": "double-collect",
+      "money": 2480063,
+      "rep": 20,
+      "taps": 0,
+      "totalTaps": 0,
+      "completed": 10,
+      "comfort": 5,
+      "slotCount": 5,
+      "boostCount": 0,
+      "levels": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "progress": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "afkAmount": 0,
+      "afkElapsed": 0,
+      "afkJobs": 0
+    }
+  ]
+}

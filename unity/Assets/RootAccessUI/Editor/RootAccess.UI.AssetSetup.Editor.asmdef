@@ -1,0 +1,5 @@
+{
+  "name": "RootAccess.UI.AssetSetup.Editor",
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

@@ -2,6 +2,16 @@
 
 Tek ekranlı, mobil odaklı interaktif idle oyun demosu. HTML, CSS ve JavaScript ile çalışır; kurulum veya build adımı gerektirmez.
 
+## Unity UI paketi
+
+Unity için düzenlenebilir UI kaynakları ve **0.3.0-preview.1** kurulum paketleri artık bu depoda:
+
+- [Tam UI + Loading paketini indir](https://github.com/zalpdomanic/RootAccessUI/raw/refs/heads/main/unity/packages/RootAccessUI-URP-Assets-0.3.0-preview.1.unitypackage)
+- [Yalnız Loading paketini indir](https://github.com/zalpdomanic/RootAccessUI/raw/refs/heads/main/unity/packages/RootAccessUI-Loading-Standalone-0.3.0-preview.1.unitypackage)
+- [Unity kurulumu ve ekip entegrasyonu](unity/README.md)
+
+Unity sürümü; dinamik job/upgrade listelerini, sade REP görünümünü, job halkalarından RUN ve basma geri bildirimini, başlangıç/reklam loading ekranlarını içerir. Bu bölüm Unity teslimidir; aşağıdaki tarayıcı demosu ayrı çalışır.
+
 ## Tarayıcıda oyna
 
 **[ROOT ACCESS demosunu aç](https://zalpdomanic.github.io/RootAccessUI/)**

@@ -1,0 +1,131 @@
+ROOT ACCESS UI — DİNAMİK JOB VE UPGRADE LİSTELERİ
+0.2.0-preview.6 / entegrasyon örneği
+
+NE DEĞİŞTİ?
+Job ve upgrade sayısı artık entegrasyon görünümünde dört öğeye bağlı değil.
+UiFrame.Jobs her job için bir halka ve Jobs ekranında bir kart oluşturur.
+Halkalar yatay, job ve upgrade kartları dikey kaydırılır.
+UiFrame.Upgrades mevcut Install Option tasarımından seçenek kartları üretir.
+Mevcut dört job'lı RootAccessDemoV2 oyun/simülasyon kodu ayrı kalır; yeni örnek
+RootAccessDynamicExample.unity sahnesindedir. Eski demo otomatik olarak yeni backend'e dönüşmez.
+
+YEREL OLARAK DENE
+Assets/RootAccessUI/Samples/Dynamic Collections/RootAccessDynamicExample.unity sahnesini açıp Play'e basın.
+Varsayılan sekiz job vardır. Halkaları sürükleyin; hazır manuel halkaya dokununca ilgili job çalışır.
+Jobs panelindeki UPGRADES düğmesi örnek upgrade listesine gider. Bu düğme yalnız bu örnekte
+BUY MAX yuvasını kullanır; asıl oyundaki satın alma modunu değiştirmez.
+Bootstrap üzerindeki JobCount alanı örnekte başlangıç sayısını değiştirir (0–50).
+Referans çevre açıktır. Kendi oyun sahnenizi göstermek için ShowReferenceEnvironment kapatılır.
+Örnek adapter sahne yeniden açılınca sıfırlanır; save/backend içermez.
+
+EKİBİN BAĞLAYACAĞI ÜÇ NOKTA
+1. Capture(): gerçek oyun state'ini UiFrame'e dönüştürür.
+2. Changed olayı: para, ilerleme veya liste değişince yeni snapshot gerektiğini bildirir.
+3. ExecuteAsync(): UI komutunu gerçek oyun sistemine iletir ve sonucu döndürür.
+
+Capture içindeki örnek veri:
+  var frame = new UiFrame { Screen = "05-jobs-top" };
+  frame.Jobs = new[] {
+    new UiJob {
+      Id = "job.decode-signal", Code = "SIG", Name = "Decode Signal",
+      Status = "LV 3 · Ready", Progress = 0.4f,
+      Payout = "$9", LevelPrice = "$100", AutomationPrice = "$500",
+      Run = new UiItemAction("run", "RUN"),
+      LevelUp = new UiItemAction("level-up", "LEVEL UP +1", true, 1),
+      Automate = new UiItemAction("automate", "AUTO +")
+    }
+  };
+  return frame;
+
+Bu sabit sayı ve metinler sadece veri biçimini anlatır. Gerçekte tüm alanlar oyundan alınır.
+Level Up fiyatı, kilit koşulu, otomasyon ücreti ve satın alma yetkisi UI içinde hesaplanmaz.
+UI ilerleme değerini 0–1 aralığında gösterir; NaN/Infinity sıfır olarak ele alınır.
+Oyun ilerlemesini güncelleyip Changed yayınlamalıdır. Örnek adapter bunu 0.1 saniyede bir yapar.
+
+Yeni job eklemek: oyun kataloğuna benzersiz Id ile kayıt ekleyin; adapter bu kaydı Jobs dizisine
+dahil etsin. UI yeni halka/kartı oluşturur. Aynı Id'nin mevcut nesnesi veri yenilemelerinde korunur.
+Liste sırası değişebilir; komutlar dizi indeksine değil Id'ye bağlıdır.
+Bir kayıt silinince görünümü ve komut bağlantısı da kaldırılır.
+Kartın locked/manual/auto türü değişirse yalnız o kart uygun tasarım şablonuyla değiştirilir.
+Yenilemeler mevcut kaydırma ofsetini korur; liste kısalırsa yeni sınırlara kırpılır.
+FocusJobId değişirse o job görünür alana taşınır.
+
+Upgrade verisi:
+  frame.Screen = "23-install-equipment";
+  frame.Upgrades = new[] {
+    new UiUpgrade {
+      Id = "upgrade.signal-module", Name = "Signal Module",
+      Detail = "Improve the connected job", Price = "$500",
+      Purchase = new UiItemAction("buy-upgrade", "UPGRADE", true)
+    }
+  };
+Satın alınmış öğede Purchase.Label="OWNED", Enabled=false gönderin.
+Kilitli veya para yetmeyen durumun metin ve Enabled bilgisini oyun belirler.
+
+VERİ SÖZLEŞMESİ
+- Jobs/Upgrades = null: Figma'da çizilmiş sabit örnek öğeler korunur.
+- Boş dizi: koleksiyondaki tüm örnekler kaldırılır; boş liste mesajı gösterilir.
+- Id boş, null veya aynı koleksiyonda yinelenmiş olamaz; görünüm değiştirilmeden reddedilir.
+- Code kısa tutulmalı (örneğin üç harf); Name daha uzun olabilir. Taşan isimler üç noktayla kesilir.
+- Uzun başlık, durum, fiyat ve düğme metinleri ayrılmış alanda kesilir; tam yerelleştirme çalışması değildir.
+- Jobs/Upgrades tarafından yönetilen kartların içine ayrıca genel UiText/UiAction bağlamayın.
+  Eski sabit occurrence/indeks bağları dinamik koleksiyon kimliği yerine kullanılamaz.
+- Otomatik halkadaki select-job komutu Entity=job.Id taşır; adapter Jobs ekranına geçip
+  FocusJobId'yi atamalıdır. DynamicExampleAdapter bunun çalışan örneğidir.
+- Dizi sırası ekrandaki sıradır. Backend kayıt sırası rastgele ise adapter kararlı biçimde sıralamalıdır.
+- Changed farklı thread'den gelebilir; Capture tutarlı snapshot vermelidir. Paylaşılan listeleri
+  başka thread değiştiriyorsa adapter kendi snapshot/senkronizasyonunu sağlamalıdır.
+
+KAPSAM
+Bu sürüm mevcut job/ring/upgrade tasarım türlerini veriyle çoğaltır. Yeni bir görsel ikon üretmez.
+Yeni tür mekanik, farklı kart yerleşimi veya yeni ikon gerekiyorsa ilgili tasarım/asset ve bağlama
+bir kez eklenir; sonraki kayıtlar o şablonu kullanabilir.
+Örnek 0/4/12/50 öğeli listeleri sınar. Tüm kartlar hiyerarşide tutulur; sanallaştırma/pooling yoktur.
+Yüzlerce kayıt ve düşük donanımlı mobil cihaz performansı ayrıca ölçülmelidir.
+Örnek adapterin ekonomi kuralları yalnız bağlantıyı göstermek içindir; gerçek oyuna taşınmamalıdır.
+Ortak host'un timeout, iptal, busy ve RequestId kuralları ENTEGRASYON-OKU.txt dosyasında anlatılır.
+Bu paket backend bağlantısının veya tüm 39 ekranın üretim oyun mantığının tamamlandığını iddia etmez.
+
+0.2.0-preview.4 — REP GÖRÜNÜMÜ
+Ana HUD içindeki sayısal REP ilerleme/hedef metni kaldırıldı; REP level, ilerleme barı ve COMFORT korunur.
+Bu değişiklik ortak Unity renderer içindedir ve her iki örnekte geçerlidir. Oyun hesabı değişmez.
+Figma kaynak kayıtları korunur; sayının gizlenmesi kullanıcı tarafından onaylanmış Unity görünüm farkıdır.
+
+
+
+0.2.0-preview.4 — HALKADAN RUN
+Manuel job halkası kartın UiJob.Run Id, Quantity ve Enabled bilgisini kullanır; aynı komutu job Id ile gönderir.
+Hazır manuel halkaya dokunmak job'ı başlatır ve mevcut ekranda kalır. Çalışan veya kilitli manuel halka komut göndermez.
+Oyun işlem tamamlanınca Run.Enabled=true döndürmeli ve Changed yayınlamalıdır. Halka yeniden çalıştırılabilir olur.
+Otomatik job halkası mevcut select-job navigasyonunu korur. Manuel job detayları Jobs panelinden açılır.
+Yatay sürükleme RUN göndermez. Bekleyen işlem sırasında mevcut busy/tekrar basma koruması geçerlidir.
+
+0.2.0-preview.5 — HALKA BASMA EFEKTİ
+Job halkaları basılıyken merkezinden yüzde 4 küçülür ve mevcut yüzde 13 parlama efektini kullanır.
+Tıklama alanı ve liste yerleşimi sabit kalır. Kısa RUN dokunuşu, istek beklenirken kontrol
+pasifleşse bile kısa efektini tamamlar. Sürükleme ve iptal durumunda görünüm eski haline döner.
+RootAccessPressFeedback.ReduceMotion=true olduğunda küçülme uygulanmaz; parlama devam eder.
+Data adapter veya backend bağlantısında değişiklik gerekmez.
+
+0.2.0-preview.6 — UI PERFORMANS DÜZENLEMESİ
+- Aynı görünümlü native şekiller referans sayımıyla ortak immutable material kullanır.
+  Boyut, köşe yarıçapları, simit doluluğu ve basılma efekti elementin vertex verisindedir.
+  Canvas TexCoord1/2/3 kanalları otomatik etkinleşir. Material değerlerini doğrudan
+  değiştirmeyin; bu diğer elementleri etkiler. SetArc/SetRadii/SetPressVisual kullanın.
+  Stil düzenlerken paint/effect dizilerini yerinde değiştirmek yerine yeni veri atayın
+  ve Configure çağırın. Örnek veri sözleşmesi değişmemiştir.
+- Buton listener'ları ve stil uygulamaları aynı veri için yeniden kurulmaz.
+  Sabit hedef ve element aramaları önbelleğe alınır. Her snapshot'taki zorunlu
+  Canvas.ForceUpdateCanvases kaldırıldı; kaydırma, adapter.Capture çağırmadan işlenir.
+- 16'dan fazla kayıt bulunan job, simit ve upgrade listeleri görünür bölge + tampon
+  alanla sınırlandırılır. Ekran dışındaki satırlar varyantlarına göre havuzda tutulur
+  ve yeniden bağlanır. Havuz başına en fazla 8 bekleyen satır vardır.
+  JobCount/RingCount/UpgradeCount veri sayısı; Live*Count aktif satır sayısıdır.
+  FindJob/FindRing/FindUpgrade ekran dışında null dönebilir; dönen GameObject'i
+  kalıcı oyun kimliği olarak saklamayın. İşlemler her zaman sabit veri Id'siyle yapılır.
+  ScrollToJob(id)/ScrollToRing(id)/ScrollToUpgrade(id) ile hedefi görünür yapın;
+  görünümü okumadan önce sonraki frame'i bekleyin. FocusJobId de desteklenir.
+- Değişen game state için Changed tetikleyin. Örnekteki 10 Hz güncelleme zorunlu
+  backend frekansı değildir. Snapshot döndükten sonra içindeki kayıtları değiştirmeyin.
+- Bu düzenleme hedef telefon FPS/ısınma/pil ölçümünün yerine geçmez. Unity Profiler
+  ve Frame Debugger ile kendi oyun sahnenizde ölçün. Material sayısı draw call sayısı değildir.

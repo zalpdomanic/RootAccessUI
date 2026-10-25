@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+*.unitypackage binary
+# Preserve Unity source/meta bytes and GUID evidence across platforms.
+unity/Assets/** -text

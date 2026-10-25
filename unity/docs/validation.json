@@ -1,0 +1,28 @@
+{
+  "version": "0.3.0-preview.1",
+  "date": "2026-10-25",
+  "unity": "6000.6.6f1",
+  "urp": "17.6.0",
+  "loadingBehaviorChecks": 17,
+  "visualComparisons": 4,
+  "repeatedOpenCloseCycles": 20,
+  "stableObjectAndMaterialCounts": true,
+  "standaloneNativeImport": "pass",
+  "combinedNativeImport": "pass",
+  "sharedGuidsPreserved": true,
+  "sharedAssetsByteIdentical": true,
+  "canonicalSnapshotPass": false,
+  "identityMethod": "Project-authorized Figma live readback + SHA-256",
+  "packages": [
+    {
+      "file": "RootAccessUI-URP-Assets-0.3.0-preview.1.unitypackage",
+      "bytes": 6735118,
+      "sha256": "b1c4eb57af516c351107f5fa0a8ed3aef241c9a083481517a7ca7a94074866d3"
+    },
+    {
+      "file": "RootAccessUI-Loading-Standalone-0.3.0-preview.1.unitypackage",
+      "bytes": 2271055,
+      "sha256": "2402a120dab881ef73af819cb7bea3027ed2844576e3637d20d5a469bc35266c"
+    }
+  ]
+}

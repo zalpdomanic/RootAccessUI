@@ -1,0 +1,4 @@
+Artwork and design supplied by the Root Access project owner; this package grants no additional redistribution rights.
+Pixel Operator and Share Tech Mono license files are included beside the fonts.
+TextMesh Pro Essential Resources are a prerequisite supplied by Unity; import them through Unity if absent.
+No backend credentials, user save data, Editor settings or ProjectSettings are included.

@@ -5,3 +5,12 @@ Desktop.ini
 *.log
 .env
 .env.*
+
+# Local Unity editor output is not part of the portable UI source delivery.
+unity/[Ll]ibrary/
+unity/[Tt]emp/
+unity/[Oo]bj/
+unity/[Ll]ogs/
+unity/[Uu]ser[Ss]ettings/
+unity/[Bb]uild/
+unity/[Bb]uilds/

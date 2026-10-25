@@ -1,0 +1,9 @@
+{
+  "name": "RootAccess.UI.Runtime",
+  "rootNamespace": "RootAccess.UI",
+  "references": [
+    "Unity.ugui",
+    "Unity.TextMeshPro"
+  ],
+  "autoReferenced": true
+}
