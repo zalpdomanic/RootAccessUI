@@ -21,16 +21,17 @@
 .shop-equipment-links{display:flex;gap:12px;padding:14px 25px;border-top:2px solid #194051;flex:none}.shop-equipment-links button,#back-to-shop{border:2px solid #3f6978;border-radius:8px;background:#0b2934;color:#9fd6dc;font:700 max(30px,var(--min-font))/1.1 var(--ui);min-height:112px;padding:12px}.shop-equipment-links button{flex:1}#back-to-shop{min-width:138px;margin-right:15px}
 #game:is([data-panel=closed],[data-panel=jobs]) #back-to-shop{display:none}
 #shop-open:active,.shop-offer button:active:enabled,.shop-equipment-links button:active{transform:translateY(3px) scale(.98);filter:brightness(1.15)}
-/* Ready manual jobs look like buttons before the first tap; progress stays in the ring. */
+/* Quiet ring surfaces; the gold play icon identifies ready manual jobs. */
 #game:is([data-panel=closed],[data-panel=jobs]) .drawer-header{height:max(170px,calc(var(--min-font)*4.4))}
 .job-rings{gap:16px;padding:9px 4px;max-width:none;margin-left:18px}
 .job-ring{width:max(116px,calc(var(--min-font)*3.2));height:max(116px,calc(var(--min-font)*3.2));border-radius:50%;font-size:max(28px,var(--min-font));box-shadow:none;overflow:visible}
 .job-ring .ring-code{transform:translateY(-14px)}
 .job-ring .ring-cue{position:absolute;top:58%;left:0;right:0;text-align:center;font:700 max(22px,calc(var(--min-font)*.8))/1 var(--ui);letter-spacing:1px}
-.job-ring.ready{color:#caffff;background:radial-gradient(circle at 50% 30%,#194552,#0b2934 65%);box-shadow:0 5px 0 #061820}
-.job-ring.ready .ring-track{stroke:#64c8d0;stroke-dasharray:none}.job-ring.ready .ring-cue{color:#00f0fa}
+.job-ring.ready{color:#b8cbd1;background:transparent;box-shadow:none}
+.job-ring.running{background:transparent}
+.job-ring.ready .ring-track{stroke:#26404c;stroke-dasharray:none}.job-ring.ready .ring-cue{color:var(--comfort-gold)}
 .job-ring.running .ring-cue{color:#9dc5c0}.job-ring.automated .ring-cue{color:#e8c77a}.job-ring.locked .ring-cue{color:#7e8491}
-.job-ring.ready:hover{filter:brightness(1.2)}.job-ring.ready:active,.job-ring.pressed{box-shadow:0 1px 0 #061820;transform:translateY(4px) scale(.94)}
+.job-ring:hover,.job-ring:active{filter:none}.job-ring.ready:active,.job-ring.pressed{box-shadow:none;transform:translateY(4px) scale(.94)}
 #game .upgrade-ready{font-size:max(29px,calc(var(--min-font)*.85));min-width:150px}
 #toast{z-index:9;top:300px}
 @media(prefers-reduced-motion:reduce){#shop-open:active,.shop-offer button:active:enabled,.shop-equipment-links button:active,.job-ring.ready:active,.job-ring.pressed{transform:none}}
