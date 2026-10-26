@@ -31,8 +31,6 @@
 .job-ring.ready .ring-track{stroke:#64c8d0;stroke-dasharray:none}.job-ring.ready .ring-cue{color:#00f0fa}
 .job-ring.running .ring-cue{color:#9dc5c0}.job-ring.automated .ring-cue{color:#e8c77a}.job-ring.locked .ring-cue{color:#7e8491}
 .job-ring.ready:hover{filter:brightness(1.2)}.job-ring.ready:active,.job-ring.pressed{box-shadow:0 1px 0 #061820;transform:translateY(4px) scale(.94)}
-.drawer-heading .ring-help{font:400 max(23px,calc(var(--min-font)*.8))/1 var(--ui);color:#75cbd1;letter-spacing:0;white-space:nowrap;margin-top:10px;display:block}
-#game:not([data-panel=closed]):not([data-panel=jobs]) .ring-help{display:none}
 #game .upgrade-ready{font-size:max(29px,calc(var(--min-font)*.85));min-width:150px}
 #toast{z-index:9;top:300px}
 @media(prefers-reduced-motion:reduce){#shop-open:active,.shop-offer button:active:enabled,.shop-equipment-links button:active,.job-ring.ready:active,.job-ring.pressed{transform:none}}

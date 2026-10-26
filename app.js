@@ -150,7 +150,7 @@
       ring.classList.toggle('running',active);ring.classList.toggle('locked',locked);ring.querySelector('.ring-fill').style.strokeDashoffset=100-(active?ringProgress:0);ring.querySelector('span').textContent=locked?'?':JOBS[i].code.split('_')[0];
       const automated=game.auto(i),ready=!locked&&!active&&!automated;
       ring.classList.toggle('ready',ready);ring.classList.toggle('automated',automated&&!locked);
-      ring.querySelector('.ring-cue').textContent=locked?'LOCK':automated?'AUTO':active?Math.ceil((JOBS[i].seconds-j.progress)/game.speed(now))+'s':'▶ RUN';
+      ring.querySelector('.ring-cue').textContent=locked?'LOCK':automated?'AUTO':active?Math.ceil((JOBS[i].seconds-j.progress)/game.speed(now))+'s':'▶';
       const ringLabel=JOBS[i].name+': '+(locked?'unlocks at REP level '+(i+1):automated?'AUTO · '+Math.floor(ringProgress)+'% complete':active?Math.floor(ringProgress)+'% complete':'tap to RUN');ring.setAttribute('aria-label',ringLabel);ring.title=ringLabel;ring.disabled=!ready;
       const run=el.querySelector('.run');run.textContent=locked?'LOCKED':game.auto(i)?'AUTO':j.running?'RUNNING':'RUN';run.classList.toggle('auto',game.auto(i));run.disabled=locked||j.running;
       el.querySelector('.state').textContent=locked?'REP LV '+(i+1):`LV ${j.level} · ${j.running?Math.ceil((JOBS[i].seconds-j.progress)/game.speed(now))+'s':'Ready'}`;
