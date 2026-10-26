@@ -1,0 +1,38 @@
+/* Shared small corner radius; the main HUD keeps its original dark surface. */
+.hud,.dock,.hack-panel{border-radius:8px}
+.room-target{display:none!important}
+#shop-open{position:absolute;right:60px;bottom:550px;z-index:3;display:flex;align-items:center;justify-content:center;gap:18px;width:310px;min-height:122px;border:2px solid #5b9da9;border-radius:8px;background:#0b2934;color:#edf4f6;font:700 max(48px,var(--min-font))/1 var(--ui);letter-spacing:5px;box-shadow:inset 0 0 15px #00e6ef0d}
+#shop-open svg{width:53px;height:53px;fill:none;stroke:currentColor;stroke-width:1.7}
+#game:not([data-panel=closed]) #shop-open,#game[data-shop-open=true] #shop-open{display:none}
+#shop-panel{--shop-accent:#ff6273;position:absolute;z-index:5;top:310px;left:60px;right:60px;bottom:545px;display:flex;flex-direction:column;background:#00131dfc;border:2px solid #18566a;border-radius:8px;overflow:hidden;box-shadow:0 10px 32px #0006}
+#shop-panel[data-category=equipment]{--shop-accent:#00e6ef}
+#shop-panel[data-category=furniture]{--shop-accent:#e8c77a}
+.shop-header{display:flex;align-items:center;gap:25px;flex:none;min-height:126px;padding:10px 32px;border-bottom:2px solid #194051}
+.shop-header h1{font:700 60px/1 var(--ui);margin:0}.shop-header #shop-money{margin-left:auto;color:var(--cyan);font:400 max(42px,var(--min-font))/1 var(--mono)}
+#shop-close{min-width:110px;min-height:110px;border:0;background:transparent;color:#91aebd;font:400 60px/1 var(--ui);margin-right:-24px}
+.shop-tabs{display:flex;gap:14px;margin:28px 25px 0;flex:none}.shop-tabs button{flex:1;min-width:0;min-height:112px;padding:12px 4px;border:2px solid #25566b;border-radius:8px;background:#061e2a;color:#8da7b6;font:700 max(36px,var(--min-font))/1 var(--ui)}
+.shop-tabs button[aria-selected=true]{border-color:var(--shop-accent);color:var(--shop-accent);background:color-mix(in srgb,var(--shop-accent) 13%,#00131d);box-shadow:inset 0 -5px var(--shop-accent)}
+.shop-summary{margin:25px 32px;flex:none}.shop-summary>div{display:flex;justify-content:space-between;gap:15px;font:400 max(38px,var(--min-font))/1.15 var(--ui)}.shop-summary b{font-weight:400;color:var(--shop-accent)}.shop-summary p{margin:12px 0 0;color:#8faab8;font:400 max(34px,var(--min-font))/1.2 var(--ui)}
+#shop-catalog{min-height:0;flex:1;overflow-y:auto;overscroll-behavior:contain;padding:0 25px 22px;scrollbar-width:thin;scrollbar-color:#496774 #00131d}
+.shop-product{padding:28px;margin-bottom:22px;background:linear-gradient(115deg,#0a202c,#071c26);border:2px solid #304e5b;border-radius:8px}.shop-product-head{display:flex;gap:25px;align-items:flex-start}.shop-icon{display:grid;place-items:center;flex:none;width:108px;height:108px;border:2px solid #2a4854;border-radius:8px;background:#041722;color:var(--shop-accent)}.shop-icon svg{width:80px;height:80px}.shop-product-info{min-width:0;flex:1}.shop-product-info>div{display:flex;gap:16px;justify-content:space-between;align-items:baseline}.shop-product h2{font:400 max(48px,var(--min-font))/1.1 var(--ui);margin:0}.shop-level{font:400 max(28px,var(--min-font))/1 var(--ui);color:#829eac;white-space:nowrap}.shop-effect{font:400 max(36px,var(--min-font))/1.25 var(--ui);color:#acc0cb;margin:16px 0 0}.shop-offer{display:flex;align-items:center;justify-content:space-between;gap:20px;border-top:2px solid #213c49;padding-top:22px;margin-top:25px}.shop-price{font:400 max(43px,var(--min-font))/1.2 var(--mono);color:#e8c77a;min-width:0}.shop-offer button{flex:none;min-width:290px;min-height:122px;padding:16px 25px;background:#183136;border:2px solid #819b9b;border-radius:8px;color:#ebf5f1;font:700 max(38px,var(--min-font))/1.1 var(--ui);letter-spacing:2px}.shop-offer button:disabled{color:#708895;border-color:#38515c;background:#10242d;opacity:1}.shop-product.locked .shop-icon{color:#637b86}.shop-product.locked h2,.shop-product.locked .shop-price{color:#91a8b5}
+#shop-panel[data-category=pc] .shop-offer button:enabled{border-color:#b2757e;background:#35242e;color:#ffced4}
+#shop-panel[data-category=furniture] .shop-offer button:enabled{border-color:#bda15f;background:#302b1d;color:#f3d78e}
+.shop-footer{display:flex;justify-content:space-between;gap:12px;flex:none;border-top:2px solid #194051;padding:16px 26px;font:400 max(28px,var(--min-font))/1.15 var(--ui);color:#859fac}.shop-footer>span:last-child{white-space:nowrap}
+.shop-equipment-links{display:flex;gap:12px;padding:14px 25px;border-top:2px solid #194051;flex:none}.shop-equipment-links button,#back-to-shop{border:2px solid #3f6978;border-radius:8px;background:#0b2934;color:#9fd6dc;font:700 max(30px,var(--min-font))/1.1 var(--ui);min-height:112px;padding:12px}.shop-equipment-links button{flex:1}#back-to-shop{min-width:138px;margin-right:15px}
+#game:is([data-panel=closed],[data-panel=jobs]) #back-to-shop{display:none}
+#shop-open:active,.shop-offer button:active:enabled,.shop-equipment-links button:active{transform:translateY(3px) scale(.98);filter:brightness(1.15)}
+/* Ready manual jobs look like buttons before the first tap; progress stays in the ring. */
+#game:is([data-panel=closed],[data-panel=jobs]) .drawer-header{height:max(170px,calc(var(--min-font)*4.4))}
+.job-rings{gap:16px;padding:9px 4px;max-width:none;margin-left:18px}
+.job-ring{width:max(116px,calc(var(--min-font)*3.2));height:max(116px,calc(var(--min-font)*3.2));border-radius:50%;font-size:max(28px,var(--min-font));box-shadow:none;overflow:visible}
+.job-ring .ring-code{transform:translateY(-14px)}
+.job-ring .ring-cue{position:absolute;top:58%;left:0;right:0;text-align:center;font:700 max(22px,calc(var(--min-font)*.8))/1 var(--ui);letter-spacing:1px}
+.job-ring.ready{color:#caffff;background:radial-gradient(circle at 50% 30%,#194552,#0b2934 65%);box-shadow:0 5px 0 #061820}
+.job-ring.ready .ring-track{stroke:#64c8d0;stroke-dasharray:none}.job-ring.ready .ring-cue{color:#00f0fa}
+.job-ring.running .ring-cue{color:#9dc5c0}.job-ring.automated .ring-cue{color:#e8c77a}.job-ring.locked .ring-cue{color:#7e8491}
+.job-ring.ready:hover{filter:brightness(1.2)}.job-ring.ready:active,.job-ring.pressed{box-shadow:0 1px 0 #061820;transform:translateY(4px) scale(.94)}
+.drawer-heading .ring-help{font:400 max(23px,calc(var(--min-font)*.8))/1 var(--ui);color:#75cbd1;letter-spacing:0;white-space:nowrap;margin-top:10px;display:block}
+#game:not([data-panel=closed]):not([data-panel=jobs]) .ring-help{display:none}
+#game .upgrade-ready{font-size:max(29px,calc(var(--min-font)*.85));min-width:150px}
+#toast{z-index:9;top:300px}
+@media(prefers-reduced-motion:reduce){#shop-open:active,.shop-offer button:active:enabled,.shop-equipment-links button:active,.job-ring.ready:active,.job-ring.pressed{transform:none}}

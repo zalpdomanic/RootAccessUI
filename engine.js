@@ -6,6 +6,18 @@
     {name:'Map the Network',code:'NET_03',description:'Ağın bağlantı haritasını tamamla.',base:280,seconds:28,rep:120,repGain:10,cost:1800},
     {name:'Ghost Protocol',code:'GHO_04',description:'İzole bir sistemde protokolü çöz.',base:1800,seconds:45,rep:400,repGain:20,cost:12000}
   ];
+  const SHOP = [
+    {id:'processor',category:'pc',name:'Processor',icon:'cpu',cost:2500,max:10,rep:1,effect:'tap',step:.2},
+    {id:'graphics',category:'pc',name:'Graphics card',icon:'gpu',cost:4200,max:10,rep:1,effect:'bar',step:.2},
+    {id:'keyboard',category:'pc',name:'Mechanical keyboard',icon:'keyboard',cost:6000,max:5,rep:2,effect:'tapPercent',step:.1},
+    {id:'amplifier',category:'equipment',name:'Signal amplifier',icon:'server',cost:3500,max:10,rep:1,effect:'job',step:.1},
+    {id:'accelerator',category:'equipment',name:'Network accelerator',icon:'router',cost:5000,max:10,rep:2,effect:'duration',step:.05},
+    {id:'compute',category:'equipment',name:'Compute module',icon:'server',cost:8500,max:5,rep:3,effect:'job',step:.15},
+    {id:'chair',category:'furniture',name:'Ergonomic chair',icon:'chair',cost:4500,max:1,rep:1,comfort:4},
+    {id:'lamp',category:'furniture',name:'Lava lamp',icon:'lamp',cost:2000,max:1,rep:1,comfort:2},
+    {id:'plant',category:'furniture',name:'Desk plant',icon:'plant',cost:1500,max:1,rep:1,comfort:1},
+    {id:'lounge',category:'furniture',name:'Designer lounge',icon:'chair',cost:30000,max:1,rep:10,comfort:10}
+  ];
   class Game {
     constructor(saved, now=Date.now()) {
       this.s = saved && saved.version===1 ? saved : Game.seed('demo',now);
@@ -15,6 +27,8 @@
       // Apply the requested level-one starting point once to existing demos.
       if(this.s.rulesVersion<3){this.s.rep=0;this.s.jobs.forEach((j,i)=>{if(i>0){j.running=false;j.progress=0;}});this.s.rulesVersion=3;}
       if(![1,10,100,'max'].includes(this.s.buyMode))this.s.buyMode=1;
+      const shop=this.s.shop||{};this.s.shop={};
+      SHOP.forEach(item=>{const n=shop[item.id];this.s.shop[item.id]=Number.isInteger(n)?Math.max(0,Math.min(item.max,n)):0;});
       const savedAt=Number.isFinite(this.s.last)?Math.min(now,this.s.last):now;
       if(!this.s.afk){
         const old=this.s.offlineReward;
@@ -34,11 +48,25 @@
     automate(i){return this.install(this.s.slots.findIndex(s=>!s),'rig',i);}
     auto(i){return this.s.slots.some(s=>s?.type==='rig'&&s.job===i);}
     modem(){return this.s.slots.find(s=>s?.type==='modem');}
-    comfort(){return this.s.comfort;}
-    multiplier(){return 1+this.comfort()/100;}
-    tapValue(now=Date.now()){return this.multiplier(now);}
-    speed(now=Date.now()){return 1+(this.modem()?0.2+(this.modem().level-1)*0.04:0)+this.s.boosts.filter(t=>t>now).length*0.25;}
-    payout(i,now=Date.now()){return JOBS[i].base*Math.pow(1.2,this.s.jobs[i].level-1)*this.multiplier(now);}
+    shopLevel(id){return this.s.shop[id]||0;}
+    shopEffect(effect){return SHOP.reduce((sum,item)=>sum+(item.effect===effect?item.step*this.shopLevel(item.id):0),0);}
+    furnitureComfort(){return SHOP.reduce((sum,item)=>sum+(item.comfort||0)*this.shopLevel(item.id),0);}
+    comfort(){return this.s.comfort+this.furnitureComfort();}
+    // Preserve the legacy baseline. New furniture adds +2% job / +3% AFK per Comfort.
+    multiplier(){return 1+this.s.comfort/100+this.furnitureComfort()*.02;}
+    afkMultiplier(){return 1+this.furnitureComfort()*.03;}
+    durationFactor(){return Math.max(.5,1-this.shopEffect('duration'));}
+    tapValue(){return (1+this.s.comfort/100+this.shopEffect('tap'))*(1+this.shopEffect('tapPercent'));}
+    fullBarValue(){return this.tapValue()*15*(1+this.shopEffect('bar'));}
+    speed(now=Date.now()){return (1+(this.modem()?0.2+(this.modem().level-1)*0.04:0)+this.s.boosts.filter(t=>t>now).length*0.25)/this.durationFactor();}
+    payout(i,now=Date.now()){return JOBS[i].base*Math.pow(1.2,this.s.jobs[i].level-1)*this.multiplier(now)*(1+this.shopEffect('job'));}
+    shopQuote(id){const item=SHOP.find(x=>x.id===id);if(!item)return null;const level=this.shopLevel(id),cost=Math.round(item.cost*Math.pow(1.35,level)),locked=this.repStatus().level<item.rep,maxed=level>=item.max;return {item,level,cost,locked,maxed,affordable:!locked&&!maxed&&this.s.money>=cost};}
+    buyShop(id,now=Date.now()){
+      if(!SHOP.some(x=>x.id===id))return false;
+      // Settle elapsed gameplay with the old modifiers before applying a purchase.
+      this.tick(now);const quote=this.shopQuote(id);if(!quote.affordable)return false;
+      this.s.money-=quote.cost;this.s.shop[id]=quote.level+1;this.log(quote.item.name+' → '+(quote.item.comfort?'OWNED':'LV '+(quote.level+1)),now);return true;
+    }
     cost(i){return JOBS[i].cost*Math.pow(1.48,this.s.jobs[i].level-1);}
     gain(amount,now){this.s.money+=amount;this.s.earned+=amount;this.s.income.push({t:now,a:amount});}
     log(message,now=Date.now()){this.s.log.unshift({message,t:now});this.s.log=this.s.log.slice(0,12);}
@@ -89,8 +117,8 @@
       }
       this.s.boosts=this.s.boosts.filter(t=>t>now);this.rate(now);
     }
-    advance(seconds,now,payoutAt=now){const unlocked=this.s.jobs.map((_,i)=>this.unlocked(i));this.s.jobs.forEach((j,i)=>{if(!unlocked[i])return;const automated=this.auto(i);if(automated)j.running=true;if(!j.running)return;j.progress+=seconds;const count=Math.min(Math.floor(j.progress/JOBS[i].seconds),automated?Infinity:1);if(!count)return;j.progress-=count*JOBS[i].seconds;const amount=this.payout(i,payoutAt)*count;if(automated&&this.afkAccruing){this.s.afk.pending+=amount;this.s.afk.pendingJobs+=count;}else this.gain(amount,now);this.s.rep+=JOBS[i].repGain*count;this.s.completed+=count;if(!automated){j.running=false;j.progress=0;this.log(JOBS[i].name+' tamamlandı',now);}});}
-    hack(now=Date.now()){this.tick(now);const amount=this.tapValue(now);this.gain(amount,now);this.s.totalTaps++;this.s.taps++;this.advance(0.35,now);let bonus=0;if(this.s.taps===10){this.s.taps=0;bonus=amount*15;this.gain(bonus,now);this.s.boosts.push(now+12000);this.log('Bar doldu · +%25 hız / 12 sn',now);}return {amount,bonus};}
+    advance(seconds,now,payoutAt=now){const unlocked=this.s.jobs.map((_,i)=>this.unlocked(i));this.s.jobs.forEach((j,i)=>{if(!unlocked[i])return;const automated=this.auto(i);if(automated)j.running=true;if(!j.running)return;j.progress+=seconds;const count=Math.min(Math.floor(j.progress/JOBS[i].seconds),automated?Infinity:1);if(!count)return;j.progress-=count*JOBS[i].seconds;const amount=this.payout(i,payoutAt)*count;if(automated&&this.afkAccruing){this.s.afk.pending+=amount*this.afkMultiplier();this.s.afk.pendingJobs+=count;}else this.gain(amount,now);this.s.rep+=JOBS[i].repGain*count;this.s.completed+=count;if(!automated){j.running=false;j.progress=0;this.log(JOBS[i].name+' tamamlandı',now);}});}
+    hack(now=Date.now()){this.tick(now);const amount=this.tapValue(now);this.gain(amount,now);this.s.totalTaps++;this.s.taps++;this.advance(0.35,now);let bonus=0;if(this.s.taps===10){this.s.taps=0;bonus=this.fullBarValue();this.gain(bonus,now);this.s.boosts.push(now+12000);this.log('Bar doldu · +%25 hız / 12 sn',now);}return {amount,bonus};}
     run(i){if(!this.unlocked(i)||this.s.jobs[i].running)return false;this.s.jobs[i].running=true;this.s.jobs[i].progress=0;return true;}
     quote(i,mode=1){
       const j=this.s.jobs[i],limit=Math.min(25-j.level,mode==='max'?25:([1,10,100].includes(mode)?mode:1));
@@ -102,5 +130,5 @@
     install(slot,type,job=0){if(!Number.isInteger(slot)||slot<0||slot>=this.s.slots.length||!['rig','modem'].includes(type)||this.s.slots[slot])return false;if(type==='rig'&&(!Number.isInteger(job)||job<0||job>=JOBS.length))return false;let cost=type==='rig'?this.automationCost(job):15000;if(type==='rig'&&(this.auto(job)||!this.unlocked(job)))return false;if(type==='modem'&&this.modem())return false;if(this.s.money<cost)return false;this.s.money-=cost;this.s.slots[slot]=type==='rig'?{type,job}:type==='modem'?{type,level:1}:{type};if(type==='rig')this.run(job);this.log(type==='rig'?'Rig kuruldu · '+JOBS[job].name:'Fiber modem kuruldu');return true;}
     upgradeModem(){let m=this.modem();if(!m||m.level>=5)return false;let cost=1500000*Math.pow(2,m.level-1);if(this.s.money<cost)return false;this.s.money-=cost;m.level++;this.s.comfort+=2;this.log('Modem → L'+m.level+' · Comfort +2');return true;}
   }
-  root.RootAccess={Game,JOBS};if(typeof module!=='undefined')module.exports={Game,JOBS};
+  root.RootAccess={Game,JOBS,SHOP};if(typeof module!=='undefined')module.exports={Game,JOBS,SHOP};
 })(typeof window==='undefined'?globalThis:window);
