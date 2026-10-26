@@ -30,8 +30,14 @@
 .job-ring.ready{color:#b8cbd1;background:transparent;box-shadow:none}
 .job-ring.running{background:transparent}
 .job-ring.ready .ring-track{stroke:#26404c;stroke-dasharray:none}.job-ring.ready .ring-cue{color:var(--comfort-gold)}
+/* A short, staggered invitation followed by a long rest; no glow or flashing. */
+.job-ring.ready .ring-cue{animation:job-play-invite 5s ease-in-out var(--ready-delay,0s) infinite;transform-origin:50% 50%}
+@keyframes job-play-invite{0%,64%,84%,100%{transform:translateX(0) scale(1)}72%{transform:translateX(6px) scale(1.18)}78%{transform:translateX(-1px) scale(1.02)}}
+.job-ring.ready:active .ring-cue,.job-ring.pressed .ring-cue{animation:none}
 .job-ring.running .ring-cue{color:#9dc5c0}.job-ring.automated .ring-cue{color:#e8c77a}.job-ring.locked .ring-cue{color:#7e8491}
 .job-ring:hover,.job-ring:active{filter:none}.job-ring.ready:active,.job-ring.pressed{box-shadow:none;transform:translateY(4px) scale(.94)}
 #game .upgrade-ready{font-size:max(29px,calc(var(--min-font)*.85));min-width:150px}
 #toast{z-index:9;top:300px}
 @media(prefers-reduced-motion:reduce){#shop-open:active,.shop-offer button:active:enabled,.shop-equipment-links button:active,.job-ring.ready:active,.job-ring.pressed{transform:none}}
+
+@media(prefers-reduced-motion:reduce){.job-ring.ready .ring-cue{animation:none}}
